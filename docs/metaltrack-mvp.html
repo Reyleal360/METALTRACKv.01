@@ -1,0 +1,352 @@
+<title>METALTRACK Documentación MVP</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: documento de una columna con índice superior; tablas y diagramas con scroll propio */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --fg:#1b2430; --muted:#5b6675; --line:#d9dee5;
+  --accent:#c2410c; --accent-soft:#fdeadd; --steel:#2f4a66; --steel-soft:#e4ebf3;
+  --ok:#17663a; --ok-soft:#dff3e6; --warn:#8a5a00; --warn-soft:#fff1cc; --bad:#9b1c1c; --bad-soft:#fbe1e1;
+  --font-body:'Inter',system-ui,sans-serif; --font-head:'Space Grotesk','Inter',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12171e; --surface:#1a212b; --fg:#e6eaf0; --muted:#97a3b3; --line:#2c3644;
+  --accent:#fb923c; --accent-soft:#3a2415; --steel:#8fb2d6; --steel-soft:#1e2d3f;
+  --ok:#6fd49a; --ok-soft:#173326; --warn:#f2c35b; --warn-soft:#3a2f12; --bad:#f08a8a; --bad-soft:#3b1b1b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171e; --surface:#1a212b; --fg:#e6eaf0; --muted:#97a3b3; --line:#2c3644;
+  --accent:#fb923c; --accent-soft:#3a2415; --steel:#8fb2d6; --steel-soft:#1e2d3f;
+  --ok:#6fd49a; --ok-soft:#173326; --warn:#f2c35b; --warn-soft:#3a2f12; --bad:#f08a8a; --bad-soft:#3b1b1b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.6;margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 64px}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+header h1{font-family:var(--font-head);font-size:clamp(28px,5vw,42px);line-height:1.1;margin:6px 0 8px;letter-spacing:-.01em}
+header .eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600}
+header p{color:var(--muted);max-width:68ch;margin:0}
+h2{font-family:var(--font-head);font-size:24px;margin:0 0 4px;text-wrap:balance;border-bottom:2px solid var(--accent);padding-bottom:8px}
+h3{font-family:var(--font-head);font-size:17px;margin:22px 0 8px;color:var(--steel)}
+p,li{max-width:80ch}
+section{display:flex;flex-direction:column;gap:12px;min-width:0}
+nav.toc{display:flex;flex-wrap:wrap;gap:8px}
+nav.toc a{font-size:13px;padding:6px 10px;border:1px solid var(--line);background:var(--surface);border-radius:6px;color:var(--fg);text-decoration:none}
+nav.toc a:hover,nav.toc a:focus-visible{border-color:var(--accent);outline:none}
+.callout{padding:14px 16px;border-radius:6px;border:1px solid var(--line);background:var(--surface);min-width:0}
+.callout.warn{background:var(--warn-soft);border-color:var(--warn);color:var(--fg)}
+.callout.warn strong:first-child{color:var(--warn)}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:680px;font-size:13.5px}
+th,td{padding:9px 11px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--steel-soft);color:var(--fg);font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:600;white-space:nowrap}
+.tag{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.alta{background:var(--bad-soft);color:var(--bad)} .media{background:var(--warn-soft);color:var(--warn)} .baja{background:var(--steel-soft);color:var(--steel)}
+.conf{background:var(--ok-soft);color:var(--ok)} .sup{background:var(--warn-soft);color:var(--warn)}
+.diagram{padding:16px;overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.diagram pre.mermaid{margin:0;text-align:center}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.cols>div{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px;min-width:0}
+.cols h4{font-family:var(--font-head);margin:0 0 6px;font-size:15px}
+ul,ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.path{font-family:ui-monospace,Consolas,monospace;font-size:13px;background:var(--steel-soft);padding:8px 10px;border-radius:6px;overflow-x:auto;white-space:nowrap}
+small,.note{color:var(--muted);font-size:13px}
+</style>
+
+<main>
+<header>
+  <div class="eyebrow">Análisis funcional · Primera versión</div>
+  <h1>METALTRACK</h1>
+  <p>Seguimiento de pedidos y piezas en una empresa metalúrgica. Este documento describe el proceso del negocio, las pantallas que intervienen en cada etapa, los requerimientos de la primera versión, su prioridad y las reglas del negocio.</p>
+  <nav class="toc" aria-label="Contenido">
+    <a href="#s0">0 Base del análisis</a><a href="#s1">1 Proceso del negocio</a><a href="#s2">2 Navegación entre vistas</a>
+    <a href="#s3">3 Requerimientos funcionales</a><a href="#s4">4 No funcionales</a><a href="#s5">5 Prioridades y alcance</a>
+    <a href="#s6">6 Reglas del negocio</a><a href="#s7">7 Preguntas abiertas</a>
+  </nav>
+</header>
+
+<section id="s0">
+  <h2>0. Base del análisis</h2>
+  <div class="callout warn"><strong>Hallazgo sobre el proyecto.</strong> La carpeta recibida contiene solo un <code>README.md</code> con el título "METALTRACK" y archivos de una herramienta de diseño. No hay pantallas, código, modelo de datos ni base de datos. Por eso no se pudo comprobar qué requerimientos ya existen. La columna "Estado en el proyecto" de la sección 3 dice "No verificable" en todos los casos. Si el código está en otra carpeta o repositorio, hay que revisarlo y completar esa columna.</div>
+  <p>Cada afirmación del documento se etiqueta así:</p>
+  <div class="cols">
+    <div><h4><span class="tag conf">Confirmado</span></h4><p class="note" style="margin:0">Viene del contexto del negocio, la lista de vistas o los requerimientos que entregaste.</p></div>
+    <div><h4><span class="tag sup">Suposición</span></h4><p class="note" style="margin:0">Propuesta del analista para completar un vacío. Debe validarla el negocio. Las preguntas están en la sección 7.</p></div>
+  </div>
+  <h3>Hechos confirmados</h3>
+  <ul>
+    <li>Cada pedido corresponde a una pieza específica y pertenece a un cliente.</li>
+    <li>Una pieza tiene varios procesos industriales que siguen un recorrido definido previamente (corte, torneado, soldadura, fresado, rectificado, inspección, entrega, entre otros).</li>
+    <li>Todos los procesos se hacen dentro de la empresa. Las piezas no salen a talleres externos.</li>
+    <li>El sistema tiene siete vistas: Dashboard, Pedidos, Todas las piezas, Seguimiento, Entregas, Bitácora y Catálogo de procesos.</li>
+    <li>Objetivo: saber en todo momento qué pedidos existen, de qué cliente, qué pieza, qué procesos faltan, en cuál va, cuáles están atrasados, cuáles listas para entregar y cuáles entregadas.</li>
+  </ul>
+  <h3>Suposiciones usadas en este documento</h3>
+  <ul>
+    <li><span class="tag sup">Suposición</span> Estados de proceso: <em>Pendiente</em>, <em>En curso</em>, <em>Terminado</em>.</li>
+    <li><span class="tag sup">Suposición</span> Estados de pieza: <em>En proceso</em>, <em>Lista para entregar</em>, <em>Entregada</em>. La palabra "atrasado" es una alerta calculada por fecha, no un estado.</li>
+    <li><span class="tag sup">Suposición</span> Porcentaje de avance = procesos terminados ÷ total de procesos × 100.</li>
+    <li><span class="tag sup">Suposición</span> Las relaciones entre vistas de la sección 2 se derivan de tus ejemplos de recorrido y de la función de cada vista. No se leyeron de un aplicativo.</li>
+  </ul>
+</section>
+
+<section id="s1">
+  <h2>1. Proceso del negocio</h2>
+  <p>Este diagrama describe cómo trabaja la empresa, de la solicitud del cliente a la entrega. No describe pantallas; eso está en la sección 2. Los bucles de "No" muestran que el proceso espera o corrige antes de avanzar.</p>
+  <div class="diagram"><pre class="mermaid">
+flowchart TD
+  classDef term fill:#2f4a66,stroke:#1b2a3a,color:#ffffff
+  classDef step fill:#e4ebf3,stroke:#2f4a66,color:#1b2430
+  classDef dec fill:#fdeadd,stroke:#c2410c,color:#1b2430
+  classDef auto fill:#dff3e6,stroke:#17663a,color:#1b2430
+
+  A([Inicio: el cliente solicita una pieza]):::term
+  B[Registrar o seleccionar al cliente]:::step
+  C[Registrar el pedido y la fecha estimada de entrega]:::step
+  D[Registrar los datos de la pieza]:::step
+  E[Seleccionar los procesos que necesita la pieza]:::step
+  F[Definir el orden del recorrido]:::step
+  G{¿Confirmar el pedido?}:::dec
+  H[Crear el pedido con su recorrido, avance 0%]:::auto
+  I[Iniciar el primer proceso]:::step
+  J[Ejecutar el proceso industrial en planta]:::step
+  K{¿El proceso actual terminó?}:::dec
+  L[Registrar la finalización del proceso]:::step
+  M[Actualizar el avance de la pieza y guardar en bitácora]:::auto
+  N{¿Quedan procesos pendientes?}:::dec
+  O[Iniciar el siguiente proceso del recorrido]:::step
+  P{¿Todos los procesos están terminados?}:::dec
+  R[Revisar el recorrido: hay un proceso sin cerrar]:::step
+  Q[Marcar la pieza como lista para entregar]:::auto
+  S{¿La pieza ya fue entregada?}:::dec
+  T[Registrar la entrega al cliente en el historial]:::step
+  U([Fin: pedido finalizado]):::term
+
+  A --> B --> C --> D --> E --> F --> G
+  G -- No, corregir --> C
+  G -- Sí --> H --> I --> J --> K
+  K -- No, sigue en ejecución --> J
+  K -- Sí --> L --> M --> N
+  N -- Sí --> O --> J
+  N -- No --> P
+  P -- No --> R --> J
+  P -- Sí --> Q --> S
+  S -- No --> T --> S
+  S -- Sí --> U
+  </pre></div>
+  <div class="note">Leyenda: óvalo azul = inicio y fin. Rectángulo azul claro = actividad. Rombo naranja = decisión. Rectángulo verde = acción automática del sistema.</div>
+  <div class="callout"><strong>Nota sobre el diagrama.</strong> Las decisiones "¿Quedan procesos pendientes?" y "¿Todos terminados?" se piden por separado. En un recorrido sin errores la segunda es consecuencia de la primera. Se dejó como verificación de seguridad antes de marcar la pieza lista para entregar (regla RN-08).</div>
+
+  <h3>1.1 Etapas del negocio</h3>
+  <div class="scroll"><table>
+    <tr><th>Etapa</th><th>Qué ocurre</th><th>Quién actúa</th></tr>
+    <tr><td>E1 Solicitud y registro</td><td>Se registra cliente, pedido, pieza, fecha estimada y recorrido de procesos.</td><td><span class="tag sup">Suposición</span> Personal administrativo o comercial</td></tr>
+    <tr><td>E2 Ejecución</td><td>Cada proceso se inicia, se ejecuta en planta y se cierra, en el orden del recorrido.</td><td><span class="tag sup">Suposición</span> Operario o supervisor de planta</td></tr>
+    <tr><td>E3 Control</td><td>El sistema recalcula el avance y vigila las fechas vencidas.</td><td>Sistema</td></tr>
+    <tr><td>E4 Entrega</td><td>La pieza queda lista, se entrega al cliente y se registra.</td><td><span class="tag sup">Suposición</span> Administración o despacho</td></tr>
+  </table></div>
+</section>
+
+<section id="s2">
+  <h2>2. Navegación entre vistas</h2>
+  <p>Este diagrama muestra cómo se mueve el usuario entre pantallas. Las flechas continuas son navegación del usuario. Las punteadas son datos que el sistema guarda o entrega por sí solo. <span class="tag sup">Suposición</span> Las relaciones se derivaron de tus ejemplos; hay que contrastarlas con el aplicativo real.</p>
+  <div class="diagram"><pre class="mermaid">
+flowchart LR
+  classDef view fill:#e4ebf3,stroke:#2f4a66,color:#1b2430
+  classDef sub fill:#ffffff,stroke:#8a96a6,color:#1b2430,stroke-dasharray:4 3
+
+  DB[Dashboard]:::view
+  PE[Pedidos]:::view
+  FO[Formulario de nuevo pedido]:::sub
+  SP[Selección y orden de procesos]:::sub
+  PI[Todas las piezas]:::view
+  SE[Seguimiento]:::view
+  EN[Entregas]:::view
+  BI[Bitácora]:::view
+  CA[Catálogo de procesos]:::view
+
+  DB --> PE
+  DB --> PI
+  DB -- piezas atrasadas y procesos activos --> SE
+  DB -- próximas entregas --> EN
+  PE --> FO --> SP --> PE
+  CA -. ofrece los procesos disponibles .-> SP
+  PE -- ver la pieza del pedido --> PI
+  PI -- seleccionar pieza --> SE
+  PI -- pieza con procesos terminados --> EN
+  SE -. cada cambio y observación .-> BI
+  EN -. cada entrega .-> BI
+  PE -. creación de pedido .-> BI
+  EN -- historial de entregas --> EN
+  </pre></div>
+
+  <h3>2.1 Recorridos del usuario</h3>
+  <div class="cols">
+    <div><h4>Nuevo pedido <span class="tag conf">Confirmado</span></h4><div class="path">Dashboard → Pedidos → Formulario de nuevo pedido → Selección de procesos → Guardar pedido</div></div>
+    <div><h4>Seguimiento <span class="tag conf">Confirmado</span></h4><div class="path">Todas las piezas → Seleccionar pieza → Seguimiento → Actualizar proceso → Registrar observación → Bitácora</div></div>
+    <div><h4>Entrega <span class="tag conf">Confirmado</span></h4><div class="path">Todas las piezas → Verificar procesos terminados → Entregas → Registrar entrega → Historial de entregas</div></div>
+    <div><h4>Dashboard <span class="tag conf">Confirmado</span></h4><div class="path">Dashboard → Consultar estadísticas → Pedidos / piezas atrasadas / procesos activos / próximas entregas</div></div>
+    <div><h4>Revisar un atraso <span class="tag sup">Suposición</span></h4><div class="path">Dashboard → Piezas atrasadas → Seguimiento de la pieza → Bitácora</div></div>
+    <div><h4>Administrar procesos <span class="tag sup">Suposición</span></h4><div class="path">Catálogo de procesos → Crear o editar proceso → Disponible en la selección de procesos de un nuevo pedido</div></div>
+    <div><h4>Auditar historial <span class="tag sup">Suposición</span></h4><div class="path">Bitácora → Consultar y filtrar eventos → Abrir pedido o pieza relacionada</div></div>
+  </div>
+
+  <h3>2.2 Matriz de vistas</h3>
+  <div class="scroll"><table style="min-width:980px">
+    <tr><th>Vista</th><th>Objetivo</th><th>Información que muestra</th><th>Acciones</th><th>Vistas relacionadas</th><th>Etapa</th></tr>
+    <tr><td>Dashboard</td><td>Dar una visión general del estado.</td><td>Cantidad de pedidos, piezas atrasadas, procesos activos, próximas entregas.</td><td>Consultar indicadores y saltar al detalle.</td><td>Pedidos, Todas las piezas, Seguimiento, Entregas</td><td>E3 Control</td></tr>
+    <tr><td>Pedidos</td><td>Administrar los pedidos.</td><td>Lista de pedidos con cliente, pieza, fecha estimada y estado.</td><td>Crear pedido (cliente, pieza, procesos, orden), consultar pedidos.</td><td>Dashboard, Todas las piezas, Catálogo, Bitácora</td><td>E1 Solicitud y registro</td></tr>
+    <tr><td>Todas las piezas</td><td>Listar todas las piezas de todos los pedidos.</td><td>Pieza, cliente, proceso actual, avance, estado, atraso.</td><td>Buscar, filtrar, seleccionar pieza.</td><td>Pedidos, Seguimiento, Entregas</td><td>E2 Ejecución y E4 Entrega</td></tr>
+    <tr><td>Seguimiento</td><td>Ver y actualizar una pieza.</td><td>Recorrido completo, estado de cada proceso, fechas, avance, observaciones.</td><td>Iniciar proceso, finalizar proceso, registrar observación.</td><td>Todas las piezas, Dashboard, Bitácora</td><td>E2 Ejecución y E3 Control</td></tr>
+    <tr><td>Entregas</td><td>Registrar y consultar entregas.</td><td>Piezas listas para entregar, próximas entregas, historial de entregas.</td><td>Registrar entrega, consultar historial.</td><td>Todas las piezas, Dashboard, Bitácora</td><td>E4 Entrega</td></tr>
+    <tr><td>Bitácora</td><td>Conservar el historial de actividad.</td><td>Eventos con fecha, usuario y detalle: creación, inicio y fin de procesos, observaciones, entregas.</td><td>Consultar. Los eventos se guardan solos y no se editan.</td><td>Seguimiento, Entregas, Pedidos</td><td>E3 Control</td></tr>
+    <tr><td>Catálogo de procesos</td><td>Mantener la lista de procesos disponibles.</td><td>Corte, torneado, soldadura, fresado, rectificado, inspección, entrega, etc.</td><td>Consultar, crear, editar, desactivar proceso.</td><td>Pedidos (selección de procesos)</td><td>E1 Solicitud y registro</td></tr>
+  </table></div>
+  <p class="note">El contenido de "Información que muestra" y "Acciones" sale de la función de cada vista y de tus requerimientos. Los campos exactos de cada pantalla no se pudieron comprobar.</p>
+</section>
+
+<section id="s3">
+  <h2>3. Requerimientos funcionales</h2>
+  <p>La columna "Ajuste propuesto" indica lo que conviene precisar antes de construir. "Estado en el proyecto" es "No verificable" porque la carpeta recibida no contiene implementación.</p>
+  <div class="scroll"><table style="min-width:900px">
+    <tr><th>ID</th><th>Módulo</th><th>Requerimiento</th><th>Estado en el proyecto</th><th>Ajuste propuesto</th></tr>
+    <tr><td>RF-01</td><td>Clientes</td><td>Registrar y consultar clientes.</td><td>No verificable</td><td>Definir los datos mínimos del cliente (pregunta P1).</td></tr>
+    <tr><td>RF-02</td><td>Pedidos</td><td>Crear pedidos asociados a un cliente.</td><td>No verificable</td><td>Exigir cliente y fecha estimada de entrega al crear.</td></tr>
+    <tr><td>RF-03</td><td>Pedidos</td><td>Cada pedido corresponde a una pieza específica.</td><td>No verificable</td><td>Relación 1 a 1 entre pedido y pieza. Definir los datos de la pieza (P2).</td></tr>
+    <tr><td>RF-04</td><td>Recorrido</td><td>Seleccionar los procesos de una pieza.</td><td>No verificable</td><td>Seleccionar solo desde el catálogo de procesos activos.</td></tr>
+    <tr><td>RF-05</td><td>Recorrido</td><td>Definir el orden de los procesos.</td><td>No verificable</td><td>Bloquear el orden cuando se inicia el primer proceso (P5).</td></tr>
+    <tr><td>RF-06</td><td>Seguimiento</td><td>Consultar el estado individual de cada pieza.</td><td>No verificable</td><td>Sin ajuste.</td></tr>
+    <tr><td>RF-07</td><td>Seguimiento</td><td>Iniciar y finalizar procesos respetando el recorrido.</td><td>No verificable</td><td>Aplicar reglas RN-05 y RN-06. Definir quién puede actualizar (P4).</td></tr>
+    <tr><td>RF-08</td><td>Seguimiento</td><td>Calcular el avance según procesos completados.</td><td>No verificable</td><td>Confirmar la fórmula: todos los procesos pesan igual (P6).</td></tr>
+    <tr><td>RF-09</td><td>Seguimiento</td><td>Registrar observaciones durante la ejecución.</td><td>No verificable</td><td>Asociar cada observación a un proceso, con fecha y autor.</td></tr>
+    <tr><td>RF-10</td><td>Bitácora</td><td>Guardar el historial de cambios y actividades.</td><td>No verificable</td><td>Registro automático y de solo lectura.</td></tr>
+    <tr><td>RF-11</td><td>Fechas</td><td>Registrar ingreso, inicio y fin de procesos, y entrega estimada.</td><td>No verificable</td><td>Las fechas de inicio y fin las toma el sistema al actualizar el proceso.</td></tr>
+    <tr><td>RF-12</td><td>Alertas</td><td>Identificar pedidos con fecha estimada vencida y sin entregar.</td><td>No verificable</td><td>Calcular la alerta al consultar. Mostrarla en Dashboard, Pedidos y Piezas.</td></tr>
+    <tr><td>RF-13</td><td>Entregas</td><td>Registrar la entrega solo con todos los procesos terminados.</td><td>No verificable</td><td>Bloquear la acción. Guardar fecha de entrega y quién la registró.</td></tr>
+    <tr><td>RF-14</td><td>Dashboard</td><td>Mostrar indicadores generales.</td><td>No verificable</td><td>Limitar el MVP a pedidos activos, piezas atrasadas, procesos activos, próximas entregas.</td></tr>
+    <tr><td>RF-15</td><td>Consulta</td><td>Buscar pedidos, piezas y clientes.</td><td>No verificable</td><td>Búsqueda por texto y filtro por estado.</td></tr>
+    <tr><td>RF-16</td><td>Catálogo</td><td>Consultar y administrar procesos.</td><td>No verificable</td><td>"Administrar" = crear, editar y desactivar. No borrar procesos ya usados.</td></tr>
+  </table></div>
+  <div class="callout"><strong>Requerimientos que faltan en la lista base.</strong>
+    <ul>
+      <li><span class="tag sup">Suposición</span> <strong>Acceso de usuarios:</strong> la lista base no dice quién puede entrar ni qué puede hacer cada rol. Depende de las preguntas P4 y P8.</li>
+      <li><span class="tag sup">Suposición</span> <strong>Editar y cancelar pedidos:</strong> no hay requerimiento que diga qué pasa si el cliente cambia o cancela un pedido (P7).</li>
+    </ul>
+    No se agregaron más para no inflar el alcance.</div>
+</section>
+
+<section id="s4">
+  <h2>4. Requerimientos no funcionales</h2>
+  <div class="scroll"><table style="min-width:760px">
+    <tr><th>ID</th><th>Categoría</th><th>Requerimiento</th><th>Criterio de verificación propuesto</th></tr>
+    <tr><td>RNF-01</td><td>Usabilidad</td><td>Interfaz intuitiva y fácil de usar.</td><td>Una persona de planta registra el avance de un proceso sin capacitación larga.</td></tr>
+    <tr><td>RNF-02</td><td>Diseño adaptable</td><td>Funciona en computador, tablet y celular.</td><td>Las siete vistas se usan sin scroll horizontal en pantalla de 400 px.</td></tr>
+    <tr><td>RNF-03</td><td>Integridad</td><td>Sin inconsistencias entre pedidos, piezas y procesos.</td><td>No existen piezas sin pedido, pedidos sin cliente ni procesos fuera de un recorrido.</td></tr>
+    <tr><td>RNF-04</td><td>Persistencia</td><td>La información se conserva al cerrar la aplicación.</td><td>Los datos siguen disponibles después de reiniciar.</td></tr>
+    <tr><td>RNF-05</td><td>Seguridad</td><td>Protección de la información del negocio.</td><td>Solo usuarios autorizados acceden. Alcance exacto en P8.</td></tr>
+    <tr><td>RNF-06</td><td>Rendimiento</td><td>Consultas sin demoras innecesarias.</td><td><span class="tag sup">Suposición</span> Una lista responde en pocos segundos con el volumen esperado (P9).</td></tr>
+    <tr><td>RNF-07</td><td>Trazabilidad</td><td>Conservar el historial de modificaciones.</td><td>Todo cambio de estado queda en la bitácora con fecha y usuario.</td></tr>
+    <tr><td>RNF-08</td><td>Validaciones</td><td>Impedir operaciones incorrectas.</td><td>El sistema rechaza con un mensaje claro cada acción que viola una regla de la sección 6.</td></tr>
+  </table></div>
+</section>
+
+<section id="s5">
+  <h2>5. Prioridades y alcance del MVP</h2>
+  <p>La prioridad es una propuesta del analista, no una decisión del negocio. <span class="tag alta">Alta</span> indispensable para la primera versión. <span class="tag media">Media</span> importante pero puede esperar. <span class="tag baja">Baja</span> mejora que no impide usar el sistema.</p>
+  <div class="scroll"><table style="min-width:720px">
+    <tr><th>ID</th><th>Requerimiento</th><th>Prioridad</th><th>Versión</th><th>Motivo</th></tr>
+    <tr><td>RF-01</td><td>Gestión de clientes</td><td><span class="tag alta">Alta</span></td><td>MVP</td><td>Todo pedido pertenece a un cliente.</td></tr>
+    <tr><td>RF-02</td><td>Registro de pedidos</td><td><span class="tag alta">Alta</span></td><td>MVP</td><td>Origen de todo el flujo.</td></tr>
+    <tr><td>RF-03</td><td>Registro de piezas</td><td><span class="tag alta">Alta</span></td><td>MVP</td><td>Un pedido es una pieza.</td></tr>
+    <tr><td>RF-04</td><td>Selección de procesos</td><td><span class="tag alta">Alta</span></td><td>MVP</td><td>Sin recorrido no hay seguimiento.</td></tr>
+    <tr><td>RF-05</td><td>Orden de procesos</td><td><span class="tag alta">Alta</span></td><td>MVP</td><td>El recorrido exige un orden.</td></tr>
+    <tr><td>RF-06</td><td>Seguimiento</td><td><span class="tag alta">Alta</span></td><td>MVP</td><td>Objetivo principal del sistema.</td></tr>
+    <tr><td>RF-07</td><td>Actualización de procesos</td><td><span class="tag alta">Alta</span></td><td>MVP</td><td>Es lo que mueve el avance.</td></tr>
+    <tr><td>RF-08</td><td>Cálculo de avance</td><td><span class="tag alta">Alta</span></td><td>MVP</td><td>Indicador central de cada pieza.</td></tr>
+    <tr><td>RF-09</td><td>Observaciones</td><td><span class="tag alta">Alta</span></td><td>MVP</td><td>Parte del recorrido de seguimiento definido.</td></tr>
+    <tr><td>RF-10</td><td>Bitácora</td><td><span class="tag alta">Alta</span></td><td>MVP</td><td>Trazabilidad; es una de las siete vistas.</td></tr>
+    <tr><td>RF-11</td><td>Control de fechas</td><td><span class="tag alta">Alta</span></td><td>MVP</td><td>Necesario para detectar atrasos.</td></tr>
+    <tr><td>RF-12</td><td>Alertas de retraso</td><td><span class="tag alta">Alta</span></td><td>MVP</td><td>Está en los objetivos principales ("cuáles pedidos están atrasados").</td></tr>
+    <tr><td>RF-13</td><td>Control de entregas</td><td><span class="tag alta">Alta</span></td><td>MVP</td><td>Cierra el flujo del negocio.</td></tr>
+    <tr><td>RF-14</td><td>Dashboard</td><td><span class="tag media">Media</span></td><td>MVP, versión básica</td><td>Solo cuatro indicadores. Los gráficos y reportes esperan.</td></tr>
+    <tr><td>RF-15</td><td>Búsqueda y filtros</td><td><span class="tag media">Media</span></td><td>Versión 2</td><td>Con pocos registros se puede operar sin ella. Pasa a Alta si el volumen es grande (P9).</td></tr>
+    <tr><td>RF-16</td><td>Catálogo de procesos</td><td><span class="tag alta">Alta</span></td><td>MVP</td><td>Los procesos deben existir para armar recorridos. Administración mínima: crear, editar, desactivar.</td></tr>
+    <tr><td>RNF-01, 03, 04, 07, 08</td><td>Usabilidad, integridad, persistencia, trazabilidad, validaciones</td><td><span class="tag alta">Alta</span></td><td>MVP</td><td>Sostienen las reglas del negocio.</td></tr>
+    <tr><td>RNF-02, 05</td><td>Diseño adaptable, seguridad</td><td><span class="tag alta">Alta</span></td><td>MVP</td><td>Uso en planta y datos del negocio. El alcance de seguridad depende de P8.</td></tr>
+    <tr><td>RNF-06</td><td>Rendimiento</td><td><span class="tag media">Media</span></td><td>MVP, sin meta formal</td><td>Se mide cuando se conozca el volumen (P9).</td></tr>
+  </table></div>
+
+  <h3>5.1 Alcance de la primera versión</h3>
+  <div class="cols">
+    <div><h4>Dentro del MVP</h4><ul>
+      <li>Registrar clientes, pedidos y piezas.</li>
+      <li>Armar y ordenar el recorrido de procesos.</li>
+      <li>Iniciar y finalizar procesos con reglas de orden.</li>
+      <li>Avance automático, observaciones y bitácora.</li>
+      <li>Fechas y alerta de atraso.</li>
+      <li>Entrega con verificación de procesos terminados e historial.</li>
+      <li>Dashboard básico y catálogo de procesos.</li>
+    </ul></div>
+    <div><h4>Puede esperar a la versión 2</h4><ul>
+      <li>Búsqueda y filtros avanzados (RF-15).</li>
+      <li>Dashboard con gráficos o reportes.</li>
+      <li><span class="tag sup">Suposición</span> Edición y cancelación avanzada de pedidos (según P7).</li>
+    </ul></div>
+    <div><h4>Fuera del alcance</h4><ul>
+      <li>Talleres o procesos externos. Confirmado: las piezas no salen de la empresa.</li>
+      <li><span class="tag sup">Suposición</span> Inventario de materiales, costos, facturación, planificación de capacidad, notificaciones externas. No están definidos en el negocio y no se agregan.</li>
+    </ul></div>
+  </div>
+</section>
+
+<section id="s6">
+  <h2>6. Reglas del negocio</h2>
+  <h3>6.1 Reglas confirmadas</h3>
+  <div class="scroll"><table style="min-width:640px">
+    <tr><th>ID</th><th>Regla</th><th>Dónde se aplica</th></tr>
+    <tr><td>RN-01</td><td>Cada pedido corresponde a una pieza específica.</td><td>Pedidos, RF-03</td></tr>
+    <tr><td>RN-02</td><td>Cada pedido pertenece a un cliente.</td><td>Pedidos, RF-01, RF-02</td></tr>
+    <tr><td>RN-03</td><td>Una pieza puede tener varios procesos.</td><td>Recorrido, RF-04</td></tr>
+    <tr><td>RN-04</td><td>Cada recorrido tiene un orden establecido.</td><td>Recorrido, RF-05</td></tr>
+    <tr><td>RN-05</td><td>No se puede finalizar un proceso que no se haya iniciado.</td><td>Seguimiento, RF-07</td></tr>
+    <tr><td>RN-06</td><td>No se avanza al siguiente proceso sin completar el anterior.</td><td>Seguimiento, RF-07</td></tr>
+    <tr><td>RN-07</td><td>El porcentaje de avance se calcula automáticamente.</td><td>Seguimiento, RF-08</td></tr>
+    <tr><td>RN-08</td><td>Una pieza solo queda lista para entregar con todos sus procesos terminados.</td><td>Seguimiento y Entregas, RF-13</td></tr>
+    <tr><td>RN-09</td><td>Toda entrega queda registrada en el historial.</td><td>Entregas, RF-13</td></tr>
+    <tr><td>RN-10</td><td>Todos los procesos se hacen dentro de la empresa.</td><td>Catálogo, alcance</td></tr>
+  </table></div>
+  <h3>6.2 Reglas adicionales propuestas <span class="tag sup">Suposición</span></h3>
+  <p class="note">Hacen falta para que el sistema sea coherente. Requieren validación del negocio.</p>
+  <div class="scroll"><table style="min-width:640px">
+    <tr><th>ID</th><th>Regla propuesta</th><th>Motivo</th></tr>
+    <tr><td>RN-11</td><td>Un pedido necesita fecha estimada de entrega al crearse.</td><td>Sin ella no se puede calcular el atraso (RF-12).</td></tr>
+    <tr><td>RN-12</td><td>Un pedido está atrasado si su fecha estimada ya pasó y la pieza no está entregada.</td><td>Define la alerta de RF-12.</td></tr>
+    <tr><td>RN-13</td><td>Una pieza tiene un solo proceso en curso a la vez.</td><td>Deriva de RN-06.</td></tr>
+    <tr><td>RN-14</td><td>El recorrido no se reordena una vez iniciado el primer proceso.</td><td>Evita inconsistencias con RN-04 (P5).</td></tr>
+    <tr><td>RN-15</td><td>Una pieza se entrega una sola vez.</td><td>Evita entregas duplicadas.</td></tr>
+    <tr><td>RN-16</td><td>La bitácora no se edita ni se borra.</td><td>Garantiza la trazabilidad (RNF-07).</td></tr>
+    <tr><td>RN-17</td><td>Un proceso del catálogo con uso histórico se desactiva, no se elimina.</td><td>Protege la integridad (RNF-03).</td></tr>
+    <tr><td>RN-18</td><td>Todos los procesos pesan igual en el cálculo de avance.</td><td>Fórmula simple y verificable (P6).</td></tr>
+  </table></div>
+</section>
+
+<section id="s7">
+  <h2>7. Preguntas abiertas</h2>
+  <div class="scroll"><table style="min-width:640px">
+    <tr><th>ID</th><th>Pregunta</th><th>Afecta a</th></tr>
+    <tr><td>P0</td><td>¿Dónde está el código o prototipo actual de METALTRACK? La carpeta recibida está vacía.</td><td>Sección 3, estado de cada requerimiento</td></tr>
+    <tr><td>P1</td><td>¿Qué datos se guardan de un cliente?</td><td>RF-01</td></tr>
+    <tr><td>P2</td><td>¿Qué datos se guardan de una pieza (nombre, código, material, medidas, cantidad, planos)?</td><td>RF-03</td></tr>
+    <tr><td>P3</td><td>"Entrega" aparece como un proceso del recorrido y también como vista aparte. ¿Es un paso del recorrido o un acto posterior a terminar todos los procesos? El diagrama de la sección 1 supone lo segundo.</td><td>Secciones 1 y 2, RN-08</td></tr>
+    <tr><td>P4</td><td>¿Quién actualiza los procesos y quién registra entregas? ¿Hay roles distintos?</td><td>RF-07, RF-13, RNF-05</td></tr>
+    <tr><td>P5</td><td>¿Se puede cambiar el orden o los procesos de un recorrido ya iniciado?</td><td>RF-05, RN-14</td></tr>
+    <tr><td>P6</td><td>¿Todos los procesos pesan igual en el avance, o algunos valen más?</td><td>RF-08, RN-18</td></tr>
+    <tr><td>P7</td><td>¿Se pueden editar o cancelar pedidos? ¿Qué pasa si se cancela uno en ejecución?</td><td>RF-02</td></tr>
+    <tr><td>P8</td><td>¿El sistema requiere inicio de sesión? ¿Cuántos usuarios lo usarán?</td><td>RNF-05</td></tr>
+    <tr><td>P9</td><td>¿Cuántos pedidos y piezas se manejan al mes? ¿Es necesario buscar y filtrar desde el primer día?</td><td>RNF-06, RF-15</td></tr>
+    <tr><td>P10</td><td>¿Una pieza con cantidad mayor a uno se sigue como una unidad o por unidad?</td><td>RF-03, RF-08</td></tr>
+    <tr><td>P11</td><td>¿Los procesos se registran en planta con celular o tablet? ¿Hay conexión estable?</td><td>RNF-02, RNF-04</td></tr>
+  </table></div>
+</section>
+</main>

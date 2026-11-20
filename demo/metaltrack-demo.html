@@ -1,0 +1,697 @@
+<title>METALTRACK Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: barra lateral fija + área de trabajo. Sistema visual de la propuesta: marino #0B1426/#12244A, azul eléctrico #1F5BFF solo para acción y proceso actual, esquinas 4px, sin sombras. */
+:root{color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:#E9ECF1;color:#101828;font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.4;-webkit-font-smoothing:antialiased}
+a{color:#1546C9}
+button{font:inherit}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums;font-feature-settings:"zero" 1}
+.mt-shell{display:flex;min-height:100vh}
+.mt-side{flex:0 0 216px;width:216px;background:#0B1426;color:#A9B4C9;padding:16px 10px;display:flex;flex-direction:column;gap:20px}
+.mt-main{flex:1 1 0;min-width:0;display:flex;flex-direction:column}
+.mt-nav{display:flex;flex-direction:column;gap:2px}
+.mt-n{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:3px;border-left:2px solid transparent;color:#A9B4C9;text-decoration:none;font-size:13px;font-weight:500;transition:background .12s,color .12s}
+.mt-n:hover{background:#13203A;color:#fff}
+.mt-n.is-on{background:#16264A;color:#fff;border-left-color:#5B8CFF}
+.mt-hd{font-size:10px;letter-spacing:.12em;color:#7C89A2;font-weight:600;padding:10px 10px 4px}
+.mt-b{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;border-radius:4px;border:1px solid #C3CBD9;background:#fff;color:#101828;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:background .12s,border-color .12s}
+.mt-b:hover{background:#F3F5F9;border-color:#9AA6BB;color:#101828}
+.mt-b.pri{background:#1F5BFF;border-color:#1F5BFF;color:#fff}
+.mt-b.pri:hover{background:#1546C9;border-color:#1546C9;color:#fff}
+.mt-b.sm{height:30px;padding:0 10px;font-size:12px}
+.mt-b[disabled]{background:#F1F3F7;border-color:#E4E8EF;color:#7C89A2;cursor:not-allowed}
+.mt-b:focus-visible,.mt-in:focus-visible,.mt-n:focus-visible,.mt-chip:focus-visible,.mt-cat:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid #1F5BFF;outline-offset:2px}
+.mt-in{height:36px;width:100%;padding:0 10px;border:1px solid #C3CBD9;border-radius:4px;background:#fff;font:inherit;font-size:13px;color:#101828}
+.mt-in[readonly]{background:#F6F7FA}
+textarea.mt-in{height:auto;padding:8px 10px;resize:vertical}
+.mt-chip{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:4px;border:1px solid #C3CBD9;background:#fff;font-size:13px;font-weight:500;cursor:pointer;color:#101828;transition:background .12s}
+.mt-chip:hover{background:#F3F5F9}
+.mt-chip.is-on{background:#12244A;border-color:#12244A;color:#fff}
+.mt-pn{background:#fff;border:1px solid #D3D9E3;border-radius:4px;min-width:0}
+.mt-ph{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-bottom:1px solid #E4E8EF;font-size:11px;font-weight:700;letter-spacing:.08em;color:#12244A;text-transform:uppercase}
+.mt-tbl{width:100%;border-collapse:collapse}
+.mt-tbl th{height:34px;padding:0 12px;text-align:left;font-size:11px;font-weight:600;letter-spacing:.04em;color:#536079;background:#F6F7FA;border-bottom:1px solid #E4E8EF;white-space:nowrap}
+.mt-tbl td{height:46px;padding:0 12px;border-top:1px solid #E4E8EF}
+.mt-tbl tbody tr:first-child td{border-top:0}
+.mt-tr{transition:background .12s}
+.mt-tr:hover{background:#F3F6FC}
+.mt-tr[data-a]{cursor:pointer}
+.mt-seg{display:flex;gap:2px;flex:1;min-width:56px}
+.mt-seg i{flex:1;height:6px;border-radius:1px;display:block}
+.mt-cat{display:flex;align-items:center;gap:8px;height:36px;padding:0 10px;border:1px solid #C3CBD9;border-radius:4px;background:#fff;font-size:13px;font-weight:500;cursor:pointer;color:#101828;transition:background .12s,border-color .12s}
+.mt-cat:hover{background:#F3F6FC;border-color:#1F5BFF}
+.mt-cat[disabled]{background:#F1F3F7;color:#7C89A2;border-color:#E4E8EF;cursor:default}
+.mt-route{transition:background .12s}
+.mt-route:hover{background:#F3F6FC}
+.mt-ib{width:28px;height:28px;border:0;background:transparent;border-radius:3px;cursor:pointer;color:#536079;display:flex;align-items:center;justify-content:center}
+.mt-ib:hover{background:#E4E8EF;color:#101828}
+.mt-ib[disabled]{opacity:.35;cursor:default;background:transparent}
+.mt-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;min-height:52px;padding:8px 28px;background:#fff;border-bottom:1px solid #D3D9E3}
+.mt-pg{padding:20px 28px 28px;display:flex;flex-direction:column;gap:16px}
+.lb{font-size:11px;font-weight:600;color:#536079}
+.fld{display:flex;flex-direction:column;gap:4px}
+.rq{color:#C0291B}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.01em}
+.sub{font-size:13px;color:#536079;margin-top:2px}
+.msg{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:4px;font-size:13px;font-weight:500}
+.msg.ok{background:#EAF6F2;border:1px solid #BFE3D9;color:#0B6B58}
+.msg.err{background:#FEF3F2;border:1px solid #FBD5D1;color:#B42318}
+.empty{padding:28px 16px;text-align:center;color:#536079;font-size:13px}
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:3px;background:#E4EBF3;color:#12244A;white-space:nowrap}
+@media(max-width:1100px){.mt-n{height:44px}.mt-b,.mt-in,.mt-cat{height:44px}.mt-b.sm{height:40px}.mt-chip{height:40px}.mt-tbl td{height:56px}.mt-route{min-height:52px!important}}
+@media(max-width:860px){.mt-shell{flex-direction:column}.mt-side{flex:none;width:100%;padding:10px 12px;flex-direction:row;align-items:center;gap:12px}.mt-brand small,.mt-sidefoot,.mt-hd{display:none}.mt-nav{flex-direction:row;overflow-x:auto;flex:1}.mt-n{white-space:nowrap}.mt-top{padding:8px 16px}.mt-pg{padding:16px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<div id="app"></div>
+<script>
+(function () {
+'use strict';
+var KEY = 'metaltrack-demo-v1';
+var DAY = 864e5, HOUR = 36e5;
+var pad = function (n) { return String(n).padStart(2, '0'); };
+var d0 = function (t) { var d = new Date(t); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
+var TODAY = function () { return d0(Date.now()); };
+var fd = function (t) { if (!t) return '—'; var d = new Date(t); return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear(); };
+var ft = function (t) { var d = new Date(t); return pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+var fdt = function (t) { return t ? fd(t) + ' ' + ft(t) : '—'; };
+var iso = function (t) { var d = new Date(t); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+var isoDT = function (t) { return iso(t) + 'T' + ft(t); };
+var parseD = function (s) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]).getTime() : null; };
+var parseDT = function (s) { var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(s || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]).getTime() : null; };
+var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+var dur = function (ms) { var m = Math.max(0, Math.floor(ms / 60000)); var d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60), mi = m % 60; return d ? d + ' d ' + h + ' h' : h ? h + ' h ' + mi + ' min' : mi + ' min'; };
+var pad4 = function (n) { return String(n).padStart(4, '0'); };
+
+/* ---------- Datos de ejemplo ---------- */
+function seed() {
+  var T = TODAY(), now = Date.now();
+  var MAT = ['Acero SAE 1045', 'Acero inoxidable 304', 'Bronce SAE 65', 'Aluminio 6061', 'Acero A36'];
+  var MED = ['120 × 80 × 40 mm', 'Ø 60 × 300 mm', 'Ø 100 × 25 mm', '200 × 150 × 12 mm', 'Ø 45 × 180 mm', '90 × 90 × 60 mm'];
+  var C4 = ['Corte', 'Torneado', 'Fresado', 'Inspección'];
+  var SP = [
+    [1, 'Brida DN100', 'Cliente B', 44, -24, ['Corte', 'Torneado', 'Inspección'], 3, 0, 24],
+    [2, 'Buje de bronce', 'Cliente A', 42, -26, ['Corte', 'Torneado', 'Rectificado', 'Inspección'], 4, 0, 27],
+    [3, 'Eje de transmisión', 'Cliente E', 38, -20, ['Corte', 'Torneado', 'Fresado', 'Rectificado', 'Inspección'], 5, 0, 21],
+    [4, 'Placa base', 'Cliente C', 36, -16, ['Corte', 'Soldadura', 'Inspección'], 3, 0, 17],
+    [5, 'Pasador guía', 'Cliente D', 33, -14, ['Corte', 'Torneado', 'Inspección'], 3, 0, 14],
+    [6, 'Soporte de rodamiento', 'Cliente A', 30, -10, ['Corte', 'Fresado', 'Soldadura', 'Inspección'], 4, 0, 11],
+    [7, 'Husillo trapecial', 'Cliente B', 27, -8, ['Corte', 'Torneado', 'Rectificado', 'Inspección'], 4, 0, 9],
+    [8, 'Perno especial M20', 'Cliente E', 24, -7, ['Corte', 'Torneado', 'Inspección'], 3, 0, 8],
+    [9, 'Manguito de acople', 'Cliente C', 16, 3, C4, 4, 0, null],
+    [10, 'Polea de aluminio', 'Cliente A', 15, 5, ['Corte', 'Fresado', 'Rectificado', 'Inspección'], 4, 0, null],
+    [11, 'Carcasa de bomba', 'Cliente D', 14, 6, ['Corte', 'Fresado', 'Soldadura', 'Inspección'], 4, 0, null],
+    [12, 'Engranaje recto Z24', 'Cliente E', 13, 8, ['Corte', 'Torneado', 'Fresado', 'Rectificado', 'Inspección'], 5, 0, null],
+    [13, 'Chaveta DIN 6885', 'Cliente B', 12, 9, ['Corte', 'Fresado', 'Inspección'], 3, 0, null],
+    [14, 'Eje escalonado', 'Cliente A', 20, -3, C4, 2, 1, null],
+    [15, 'Soporte de motor', 'Cliente D', 17, -2, ['Corte', 'Soldadura', 'Inspección'], 1, 1, null],
+    [16, 'Rodillo guía', 'Cliente C', 15, -1, ['Corte', 'Torneado', 'Rectificado', 'Fresado', 'Inspección'], 4, 1, null],
+    [17, 'Flange ciega', 'Cliente B', 9, 10, C4, 2, 1, null],
+    [18, 'Tapa de reductor', 'Cliente E', 8, 12, ['Corte', 'Fresado', 'Rectificado', 'Inspección'], 1, 1, null],
+    [19, 'Mordaza de sujeción', 'Cliente A', 7, 14, ['Corte', 'Soldadura', 'Fresado', 'Inspección'], 2, 1, null],
+    [20, 'Cilindro hidráulico', 'Cliente C', 6, 15, ['Corte', 'Torneado', 'Rectificado', 'Inspección'], 1, 1, null],
+    [21, 'Anillo de ajuste', 'Cliente D', 5, 16, ['Corte', 'Torneado', 'Inspección'], 1, 1, null],
+    [22, 'Tornillo sin fin', 'Cliente B', 4, 19, ['Corte', 'Torneado', 'Fresado', 'Rectificado', 'Inspección'], 0, 1, null],
+    [23, 'Cuña de fijación', 'Cliente E', 1, 22, ['Corte', 'Fresado', 'Inspección'], 0, 0, null],
+    [24, 'Ménsula reforzada', 'Cliente A', 0, 24, ['Corte', 'Soldadura', 'Inspección'], 0, 0, null]
+  ];
+  var orders = [], log = [];
+  SP.forEach(function (r) {
+    var id = 'MT-' + pad4(r[0]), entry = T - r[3] * DAY, base = entry + 8 * HOUR, names = r[5], done = r[6];
+    var steps = names.map(function (name, i) {
+      var s = { name: name, st: 'pend', start: null, end: null, obs: '' };
+      var start = Math.min(base + i * 30 * HOUR, now - 2 * HOUR);
+      if (i < done) { s.st = 'done'; s.start = start; s.end = Math.min(start + 22 * HOUR, now - HOUR); }
+      else if (i === done && r[7]) { s.st = 'proc'; s.start = start; }
+      if (s.start) log.push({ t: s.start, id: id, proc: name, from: 'Pendiente', to: 'En proceso', kind: 'proc', obs: '' });
+      if (s.end) log.push({ t: s.end, id: id, proc: name, from: 'En proceso', to: 'Terminado', kind: 'proc', obs: '' });
+      return s;
+    });
+    var o = { id: id, piece: r[1], client: r[2], material: MAT[r[0] % MAT.length], medidas: MED[r[0] % MED.length], desc: '', obs: '', entry: entry, due: T + r[4] * DAY, steps: steps, delivered: null };
+    log.push({ t: entry + 7 * HOUR, id: id, proc: '', from: '', to: '', kind: 'pedido', obs: '' });
+    if (r[8] != null) {
+      var at = T - r[8] * DAY + 10 * HOUR;
+      o.delivered = { at: at, obs: r[0] % 3 === 0 ? 'Retira el cliente' : r[0] % 2 === 0 ? 'Sin novedades' : '' };
+      log.push({ t: at, id: id, proc: '', from: '', to: '', kind: 'entrega', obs: o.delivered.obs });
+    }
+    orders.push(o);
+  });
+  log.sort(function (a, b) { return b.t - a.t; });
+  return {
+    v: 1, orders: orders, log: log, nextNum: 25,
+    clients: ['Cliente A', 'Cliente B', 'Cliente C', 'Cliente D', 'Cliente E'],
+    catalog: ['Corte', 'Torneado', 'Soldadura', 'Fresado', 'Rectificado', 'Inspección'].map(function (n) { return { name: n, active: true }; })
+  };
+}
+function load() {
+  try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.v === 1 && Array.isArray(s.orders) && Array.isArray(s.log)) return s; } catch (e) {}
+  return null;
+}
+var S = load() || seed();
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+/* ---------- Derivados ---------- */
+var doneN = function (o) { return o.steps.filter(function (s) { return s.st === 'done'; }).length; };
+var kindOf = function (o) { return o.delivered ? 'x' : doneN(o) === o.steps.length ? 'l' : o.steps.some(function (s) { return s.st !== 'pend'; }) ? 'e' : 'p'; };
+var isLate = function (o) { return !o.delivered && o.due < TODAY(); };
+var lateDays = function (o) { return Math.round((TODAY() - o.due) / DAY); };
+var pctOf = function (o) { return Math.round(doneN(o) / o.steps.length * 100); };
+var procStep = function (o) { for (var i = 0; i < o.steps.length; i++) if (o.steps[i].st === 'proc') return i; return -1; };
+var curName = function (o) { var k = kindOf(o); if (k === 'x') return '—'; if (k === 'l') return 'Entrega'; var i = procStep(o); if (i >= 0) return o.steps[i].name; var j = o.steps.findIndex(function (s) { return s.st === 'pend'; }); return j >= 0 ? o.steps[j].name : '—'; };
+var DOT = { p: '#7A869C', e: '#1F5BFF', l: '#0B7A66', x: '#536079' };
+var SNAME = { p: 'Pendiente', e: 'En proceso', l: 'Lista p/ entregar', x: 'Entregada' };
+var byId = function (id) { return S.orders.find(function (o) { return o.id === id; }); };
+function segs(o) {
+  var l = isLate(o);
+  return '<div class="mt-seg">' + o.steps.map(function (s) { return '<i style="background:' + (s.st === 'done' ? '#12244A' : s.st === 'proc' ? (l ? '#C0291B' : '#1F5BFF') : '#CBD2DE') + '"></i>'; }).join('') + '</div>';
+}
+function dueTxt(o) {
+  if (o.delivered) return fd(o.due);
+  if (isLate(o)) return fd(o.due) + ' · −' + lateDays(o) + ' d';
+  return fd(o.due);
+}
+function addLog(id, proc, from, to, kind, obs) { S.log.unshift({ t: Date.now(), id: id, proc: proc, from: from, to: to, kind: kind, obs: obs || '' }); }
+
+/* ---------- Estado de interfaz ---------- */
+var VIEWS = ['dashboard', 'pedido', 'piezas', 'seguimiento', 'entregas', 'bitacora', 'catalogo'];
+function blankDraft() { return { client: '', entry: iso(Date.now()), due: '', piece: '', material: '', medidas: '', desc: '', obs: '', route: [] }; }
+var UI = {
+  route: 'dashboard', segId: null, msg: null, openHist: '', obsText: '', resetArm: false,
+  piezas: { q: '', chip: 'todas', cliente: '', proc: '', sort: 'entry-desc', from: '', to: '', page: 1, sel: null },
+  draft: blankDraft(),
+  ent: { chip: 'por', sel: null, dt: '', obs: '' },
+  bit: { q: '', type: '', page: 1 },
+  cat: { name: '' }
+};
+var msgTimer = null;
+function say(text, kind) {
+  UI.msg = { text: text, kind: kind || 'ok' };
+  clearTimeout(msgTimer);
+  msgTimer = setTimeout(function () { UI.msg = null; render(); }, 5000);
+}
+function commit() { save(); render(); }
+
+/* ---------- Iconos ---------- */
+var IC = {
+  dash: 'M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z',
+  ped: 'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M12 12v6M9 15h6',
+  pie: 'M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
+  seg: 'M3 3h6v6H3zM15 15h6v6h-6zM6 9v6a3 3 0 0 0 3 3h6',
+  ent: 'M1 3h15v13H1zM16 8h4l3 3v5h-7zM5.5 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM18.5 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
+  bit: 'M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l4 2',
+  cat: 'M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6'
+};
+var NAV = [['Dashboard', 'dashboard', IC.dash, 'PRINCIPAL'], ['Pedidos', 'pedido', IC.ped, 'OPERACIÓN'], ['Todas las piezas', 'piezas', IC.pie, ''], ['Seguimiento', 'seguimiento', IC.seg, ''], ['Entregas', 'entregas', IC.ent, ''], ['Bitácora', 'bitacora', IC.bit, 'REGISTRO'], ['Catálogo de procesos', 'catalogo', IC.cat, 'SISTEMA']];
+var svg = function (d, w, sw) { return '<svg width="' + (w || 16) + '" height="' + (w || 16) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (sw || 1.8) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + d + '"/></svg>'; };
+var PLUS = 'M12 5v14M5 12h14', CHECK = 'M5 12l5 5L20 7';
+
+/* ---------- Estructura general ---------- */
+function shell(crumb, body, topExtra) {
+  var nav = NAV.map(function (n) {
+    return '<div>' + (n[3] ? '<div class="mt-hd">' + n[3] + '</div>' : '') + '<a href="#' + n[1] + '" class="mt-n' + (UI.route === n[1] ? ' is-on' : '') + '"' + (UI.route === n[1] ? ' aria-current="page"' : '') + '>' + svg(n[2]) + n[0] + '</a></div>';
+  }).join('');
+  var msg = UI.msg ? '<div class="msg ' + UI.msg.kind + '" role="status">' + esc(UI.msg.text) + '</div>' : '';
+  return '<div class="mt-shell"><aside class="mt-side">' +
+    '<div class="mt-brand" style="display:flex;align-items:center;gap:10px;padding:0 6px"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><path d="M0 0h26l6 6v26H0z" fill="#1F5BFF"/><rect x="6" y="9" width="6" height="3" fill="#fff"/><rect x="14" y="9" width="6" height="3" fill="#fff"/><rect x="22" y="9" width="4" height="3" fill="#fff" opacity=".35"/><rect x="6" y="15" width="12" height="3" fill="#fff"/><rect x="20" y="15" width="6" height="3" fill="#fff" opacity=".35"/><rect x="6" y="21" width="4" height="3" fill="#fff"/><rect x="12" y="21" width="14" height="3" fill="#fff" opacity=".35"/></svg><div><div style="font-weight:700;font-size:15px;letter-spacing:.1em;color:#fff">METALTRACK</div><small style="font-size:11px;color:#7C89A2">Control de taller</small></div></div>' +
+    '<nav class="mt-nav" aria-label="Principal">' + nav + '</nav>' +
+    '<div class="mt-sidefoot" style="margin-top:auto;padding:10px;border-top:1px solid #1B2A47;font-size:12px;color:#7C89A2;display:flex;flex-direction:column;gap:8px">Sesión: encargado de taller<button type="button" data-a="reset" style="height:30px;border:1px solid #2A3A5C;background:transparent;color:#A9B4C9;border-radius:4px;cursor:pointer;font-size:12px">' + (UI.resetArm ? 'Pulsa otra vez para confirmar' : 'Restablecer datos de ejemplo') + '</button></div>' +
+    '</aside><div class="mt-main"><div class="mt-top"><div style="font-size:13px;color:#536079">' + crumb + '</div><div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">' + (topExtra || '') + '<span class="mono" style="font-size:12px;color:#536079">' + fd(Date.now()) + '</span></div></div>' +
+    '<div class="mt-pg">' + msg + body + '</div></div></div>';
+}
+var crumb1 = function (t) { return 'METALTRACK <span style="color:#9AA6BB">/</span> <span style="color:#101828;font-weight:600">' + t + '</span>'; };
+var panelHead = function (t, right) { return '<div class="mt-ph"><span>' + t + '</span>' + (right || '') + '</div>'; };
+var monoR = function (t) { return '<span class="mono" style="font-weight:500;letter-spacing:0;color:#536079">' + t + '</span>'; };
+
+/* ---------- Dashboard ---------- */
+function vDashboard() {
+  var O = S.orders, cnt = { p: 0, e: 0, l: 0, x: 0 }, late = [];
+  O.forEach(function (o) { cnt[kindOf(o)]++; if (isLate(o)) late.push(o); });
+  var activos = O.length - cnt.x;
+  var maxLate = late.reduce(function (m, o) { return Math.max(m, lateDays(o)); }, 0);
+  var alertH = late.length ? '<a href="#piezas" data-a="chip" data-chip="atrasadas" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:12px 16px;border-radius:4px;background:#FEF3F2;border:1px solid #FBD5D1;border-left:4px solid #C0291B;text-decoration:none;color:#B42318;font-size:13px;font-weight:600">' + svg('M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z', 16, 2) + '<span><span class="mono">' + late.length + '</span> pedido(s) atrasado(s) respecto a la fecha estimada de entrega · el mayor atraso es de <span class="mono">' + maxLate + ' d</span></span><span style="margin-left:auto">Ver atrasados →</span></a>' :
+    '<div class="msg ok">Ningún pedido atrasado. Todo va dentro de la fecha estimada.</div>';
+  var K = [['Atrasadas', late.length, '#C0291B', '#C0291B', 'atrasadas'], ['Pedidos activos', activos, '#101828', '#12244A', 'activos'], ['Pendientes', cnt.p, '#101828', '#7A869C', 'p'], ['En proceso', cnt.e, '#101828', '#1F5BFF', 'e'], ['Listas p/ entregar', cnt.l, '#0B6B58', '#0B7A66', 'l'], ['Entregadas', cnt.x, '#101828', '#536079', 'x'], ['Total piezas', O.length, '#101828', '#D3D9E3', 'todas']];
+  var kpis = K.map(function (k) {
+    return '<a href="' + (k[4] === 'l' ? '#entregas' : '#piezas') + '" data-a="chip" data-chip="' + k[4] + '" class="mt-tr" style="padding:14px 16px;border-right:1px solid #E4E8EF;display:flex;flex-direction:column;gap:6px;border-top:3px solid ' + k[3] + ';text-decoration:none;color:inherit"><div style="font-size:12px;font-weight:500;color:#536079">' + k[0] + '</div><div class="mono" style="font-size:26px;font-weight:600;line-height:1;color:' + k[2] + '">' + k[1] + '</div><div style="font-size:11px;color:#1546C9;font-weight:500">Ver registros →</div></a>';
+  }).join('');
+  var attn = late.slice().sort(function (a, b) { return lateDays(b) - lateDays(a); }).concat(O.filter(function (o) { return kindOf(o) === 'l' && !isLate(o); })).slice(0, 6);
+  var attnRows = attn.map(function (o) {
+    var l = isLate(o), k = kindOf(o);
+    var reason = l ? 'Atrasada ' + lateDays(o) + ' d' : 'Lista para entregar';
+    var rc = l ? '#C0291B' : '#0B6B58';
+    return '<tr class="mt-tr" style="box-shadow:inset 3px 0 0 ' + (l ? '#C0291B' : '#0B7A66') + '"><td class="mono" style="font-weight:600;font-size:13px"><a href="#seguimiento" data-a="open" data-id="' + o.id + '" style="color:#101828;text-decoration:none">' + o.id + '</a></td><td><span style="font-weight:600">' + esc(o.piece) + '</span> <span style="color:#536079">· ' + esc(o.client) + '</span></td><td>' + curName(o) + '</td><td><div style="display:flex;align-items:center;gap:8px">' + segs(o) + '<span class="mono" style="font-size:12px;color:#536079;width:28px">' + doneN(o) + '/' + o.steps.length + '</span></div></td><td style="font-weight:600;color:' + rc + '">' + reason + '</td></tr>';
+  }).join('') || '<tr><td colspan="5" class="empty">Nada requiere atención ahora.</td></tr>';
+  var act = {}, nProc = 0;
+  O.forEach(function (o) { var i = procStep(o); if (i >= 0 && !o.delivered) { act[o.steps[i].name] = (act[o.steps[i].name] || 0) + 1; nProc++; } });
+  var actL = Object.keys(act).sort(function (a, b) { return act[b] - act[a]; });
+  var actMax = actL.length ? act[actL[0]] : 1;
+  var actH = actL.map(function (n) { return '<div style="display:grid;grid-template-columns:110px 1fr 28px;gap:12px;align-items:center;height:36px;font-size:13px"><span style="font-weight:500">' + esc(n) + '</span><div style="height:8px;background:#EDF0F5;border-radius:1px"><div style="height:100%;width:' + Math.round(act[n] / actMax * 100) + '%;background:#1F5BFF;border-radius:1px"></div></div><span class="mono" style="font-weight:600;text-align:right">' + act[n] + '</span></div>'; }).join('') || '<div class="empty">No hay procesos en curso.</div>';
+  var next = O.filter(function (o) { return !o.delivered; }).sort(function (a, b) { return a.due - b.due; }).slice(0, 5).map(function (o) {
+    var dd = Math.round((o.due - TODAY()) / DAY), rdy = kindOf(o) === 'l';
+    return '<a href="#seguimiento" data-a="open" data-id="' + o.id + '" class="mt-tr" style="display:grid;grid-template-columns:78px 1fr auto;gap:10px;align-items:center;min-height:46px;padding:6px 14px;border-top:1px solid #E4E8EF;text-decoration:none;color:#101828"><span class="mono" style="font-size:12px;font-weight:600">' + fd(o.due) + '</span><span style="min-width:0"><span class="mono" style="font-size:12px;color:#536079">' + o.id + '</span> <span style="font-weight:500">' + esc(o.client) + '</span></span><span class="mono" style="font-size:12px;text-align:right"><b style="color:' + (dd < 0 ? '#C0291B' : rdy ? '#0B6B58' : '#101828') + '">' + doneN(o) + '/' + o.steps.length + '</b> <span style="color:#536079">· ' + (dd < 0 ? 'hace ' + (-dd) + ' d' : dd === 0 ? 'hoy' : 'en ' + dd + ' d') + '</span></span></a>';
+  }).join('');
+  var act5 = S.log.slice(0, 5).map(function (l) {
+    var when = d0(l.t) === TODAY() ? ft(l.t) : d0(l.t) === TODAY() - DAY ? 'Ayer' : fd(l.t).slice(0, 5);
+    return '<div style="display:grid;grid-template-columns:48px 1fr;gap:10px;padding:9px 14px;border-top:1px solid #E4E8EF;font-size:13px"><span class="mono" style="font-size:12px;color:#536079">' + when + '</span><span><span class="mono" style="font-size:12px;font-weight:600">' + l.id + '</span> ' + esc(logText(l)) + '</span></div>';
+  }).join('');
+  var bar = ['p', 'e', 'l', 'x'].map(function (k) { return cnt[k] ? '<div style="flex:' + cnt[k] + ';background:' + DOT[k] + '"></div>' : ''; }).join('');
+  var legend = ['p', 'e', 'l', 'x'].map(function (k) { return '<span style="display:flex;align-items:center;gap:8px"><i style="width:8px;height:8px;background:' + DOT[k] + ';display:inline-block"></i>' + SNAME[k] + '<b class="mono" style="margin-left:auto">' + cnt[k] + '</b></span>'; }).join('');
+  var term = cnt.l + cnt.x;
+  var freq = {};
+  O.forEach(function (o) { o.steps.forEach(function (s) { freq[s.name] = (freq[s.name] || 0) + 1; }); });
+  var fl = Object.keys(freq).sort(function (a, b) { return freq[b] - freq[a]; }).slice(0, 5), fmax = fl.length ? freq[fl[0]] : 1;
+  var freqH = fl.map(function (n) { return '<div style="display:grid;grid-template-columns:100px 1fr 28px;gap:12px;align-items:center;height:34px;font-size:13px"><span style="font-weight:500">' + esc(n) + '</span><div style="height:8px;background:#EDF0F5;border-radius:1px"><div style="height:100%;width:' + Math.round(freq[n] / fmax * 100) + '%;background:#12244A;border-radius:1px"></div></div><span class="mono" style="font-weight:600;text-align:right">' + freq[n] + '</span></div>'; }).join('');
+  var T1 = TODAY() + DAY, ing = [], ent = [], mx = 0, k;
+  for (k = 0; k < 6; k++) {
+    var lo = T1 - (6 - k) * 7 * DAY, hi = T1 - (5 - k) * 7 * DAY;
+    var a = O.filter(function (o) { return o.entry >= lo && o.entry < hi; }).length;
+    var b = O.filter(function (o) { return o.delivered && o.delivered.at >= lo && o.delivered.at < hi; }).length;
+    ing.push(a); ent.push(b); mx = Math.max(mx, a, b);
+  }
+  mx = Math.max(4, mx + (mx % 2));
+  var X = function (i) { return 34 + i * 55; }, Y = function (v) { return 110 - v / mx * 100; };
+  var pl = function (arr, col) { return '<polyline points="' + arr.map(function (v, i) { return X(i) + ',' + Y(v).toFixed(1); }).join(' ') + '" fill="none" stroke="' + col + '" stroke-width="2"/>' + arr.map(function (v, i) { return '<circle cx="' + X(i) + '" cy="' + Y(v).toFixed(1) + '" r="2.5" fill="' + col + '"/>'; }).join(''); };
+  var chart = '<svg viewBox="0 0 320 134" style="width:100%;height:auto;display:block" role="img" aria-label="Piezas ingresadas y entregadas por semana, últimas 6 semanas"><g stroke="#E4E8EF"><path d="M24 10H316M24 60H316M24 110H316"/></g><g fill="#536079" font-size="10" font-family="JetBrains Mono,monospace"><text x="0" y="13">' + mx + '</text><text x="0" y="63">' + (mx / 2) + '</text><text x="8" y="113">0</text>' + [0, 1, 2, 3, 4, 5].map(function (i) { return '<text x="' + (X(i) - 6) + '" y="128">S' + (i + 1) + '</text>'; }).join('') + '</g>' + pl(ing, '#1F5BFF') + pl(ent, '#12244A') + '</svg>';
+  return {
+    crumb: crumb1('Dashboard'),
+    top: '<label style="position:relative;display:block;width:280px;max-width:100%"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#536079" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="position:absolute;left:10px;top:50%;margin-top:-7px"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="top-q" class="mt-in" type="search" data-m="piezas.q" data-enter="piezas" value="' + esc(UI.piezas.q) + '" placeholder="Buscar pedido, pieza o cliente" aria-label="Buscar" style="padding-left:32px"></label>',
+    body: '<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px"><div><h1>Resumen del taller</h1><div class="sub">Qué requiere atención hoy · datos de ejemplo</div></div><a href="#pedido" class="mt-b pri">' + svg(PLUS, 14, 2.6) + 'Nuevo pedido</a></div>' + alertH +
+      '<section class="mt-pn" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr))">' + kpis + '</section>' +
+      '<div class="row"><div style="flex:2 1 560px;min-width:0;display:flex;flex-direction:column;gap:16px">' +
+      '<section class="mt-pn">' + panelHead('Requiere atención', monoR(attn.length)) + '<div style="overflow-x:auto"><table class="mt-tbl" style="min-width:640px"><thead><tr><th>Pedido</th><th>Pieza · cliente</th><th>Proceso actual</th><th style="min-width:130px">Avance</th><th>Motivo</th></tr></thead><tbody>' + attnRows + '</tbody></table></div></section>' +
+      '<section class="mt-pn">' + panelHead('Procesos activos ahora', monoR(nProc + ' piezas')) + '<div style="padding:6px 14px 10px">' + actH + '</div></section></div>' +
+      '<div style="flex:1 1 340px;min-width:0;display:flex;flex-direction:column;gap:16px"><section class="mt-pn">' + panelHead('Próximas entregas') + next + '</section>' +
+      '<section class="mt-pn">' + panelHead('Actividad reciente', '<a href="#bitacora" style="font-size:12px;font-weight:600;letter-spacing:0;text-transform:none;text-decoration:none">Ver bitácora</a>') + act5 + '</section></div></div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:16px;align-items:stretch">' +
+      '<section class="mt-pn" style="flex:1 1 320px">' + panelHead('Piezas por estado', monoR(O.length)) + '<div style="padding:16px 14px;display:flex;flex-direction:column;gap:14px"><div style="display:flex;height:14px;gap:2px">' + bar + '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:12px">' + legend + '</div><div style="border-top:1px solid #E4E8EF;padding-top:12px;display:flex;justify-content:space-between;font-size:12px;color:#536079"><span>Terminadas</span><span class="mono" style="font-weight:600;color:#101828">' + term + ' de ' + O.length + ' · ' + (O.length ? Math.round(term / O.length * 100) : 0) + '%</span></div></div></section>' +
+      '<section class="mt-pn" style="flex:1 1 320px">' + panelHead('Procesos más frecuentes') + '<div style="padding:6px 14px 10px">' + freqH + '</div></section>' +
+      '<section class="mt-pn" style="flex:1 1 320px">' + panelHead('Evolución semanal', '<span style="display:flex;gap:12px;font-size:11px;letter-spacing:0;text-transform:none;font-weight:500;color:#536079"><span style="display:flex;align-items:center;gap:5px"><i style="width:10px;height:3px;background:#1F5BFF;display:inline-block"></i>Ingresados</span><span style="display:flex;align-items:center;gap:5px"><i style="width:10px;height:3px;background:#12244A;display:inline-block"></i>Entregados</span></span>') + '<div style="padding:12px 14px">' + chart + '</div></section></div>'
+  };
+}
+function logText(l) {
+  if (l.kind === 'pedido') return 'pedido registrado';
+  if (l.kind === 'entrega') return 'marcado como entregado' + (l.obs ? ' · ' + l.obs : '');
+  if (l.kind === 'obs') return l.proc + ': observación · ' + l.obs;
+  return l.proc + ': ' + l.from + ' → ' + l.to + (l.obs ? ' · ' + l.obs : '');
+}
+
+/* ---------- Todas las piezas ---------- */
+function filterOrders() {
+  var P = UI.piezas, q = P.q.trim().toLowerCase();
+  var f = S.orders.filter(function (o) {
+    var k = kindOf(o);
+    if (P.chip === 'p' && k !== 'p') return false;
+    if (P.chip === 'e' && k !== 'e') return false;
+    if (P.chip === 'l' && k !== 'l') return false;
+    if (P.chip === 'x' && k !== 'x') return false;
+    if (P.chip === 'atrasadas' && !isLate(o)) return false;
+    if (P.chip === 'activos' && k === 'x') return false;
+    if (P.cliente && o.client !== P.cliente) return false;
+    if (P.proc && curName(o) !== P.proc) return false;
+    var a = parseD(P.from), b = parseD(P.to);
+    if (a && o.entry < a) return false;
+    if (b && o.entry > b) return false;
+    if (q && (o.id + ' ' + o.piece + ' ' + o.client).toLowerCase().indexOf(q) < 0) return false;
+    return true;
+  });
+  var s = P.sort;
+  f.sort(function (a, b) {
+    if (s === 'entry-asc') return a.entry - b.entry || a.id.localeCompare(b.id);
+    if (s === 'due-asc') return a.due - b.due;
+    if (s === 'due-desc') return b.due - a.due;
+    if (s === 'avance-desc') return pctOf(b) - pctOf(a);
+    return b.entry - a.entry || b.id.localeCompare(a.id);
+  });
+  return f;
+}
+function opt(v, label, cur) { return '<option value="' + esc(v) + '"' + (v === cur ? ' selected' : '') + '>' + esc(label) + '</option>'; }
+function vPiezas() {
+  var P = UI.piezas, O = S.orders, F = filterOrders();
+  var C = { todas: O.length, p: 0, e: 0, atrasadas: 0, l: 0, x: 0 };
+  O.forEach(function (o) { C[kindOf(o)]++; if (isLate(o)) C.atrasadas++; });
+  var chips = [['todas', 'Todas'], ['p', 'Pendientes'], ['e', 'En proceso'], ['atrasadas', 'Atrasadas'], ['l', 'Listas'], ['x', 'Entregadas']].map(function (c) {
+    return '<button type="button" class="mt-chip' + (P.chip === c[0] ? ' is-on' : '') + '" data-a="chip" data-chip="' + c[0] + '">' + c[1] + '<span class="mono" style="font-size:12px;opacity:.75">' + C[c[0]] + '</span></button>';
+  }).join('');
+  var per = 10, pages = Math.max(1, Math.ceil(F.length / per)), pg = Math.min(P.page, pages);
+  var rows = F.slice((pg - 1) * per, pg * per);
+  var sel = byId(P.sel) || rows[0] || null;
+  var tr = rows.map(function (o) {
+    var k = kindOf(o), l = isLate(o), on = sel && sel.id === o.id;
+    return '<tr class="mt-tr" data-a="sel" data-id="' + o.id + '" style="background:' + (on ? '#EEF3FF' : 'transparent') + ';box-shadow:inset 3px 0 0 ' + (on ? '#1F5BFF' : l ? '#C0291B' : 'transparent') + '"><td class="mono" style="font-weight:600">' + o.id + '</td><td><div style="font-weight:600;line-height:1.2">' + esc(o.piece) + '</div><div style="font-size:12px;color:#536079">' + esc(o.client) + '</div></td><td class="mono" style="color:#3A465C;font-size:12px">' + fd(o.entry) + '</td><td>' + curName(o) + '</td><td><span style="display:inline-flex;align-items:center;gap:7px;white-space:nowrap"><i style="width:8px;height:8px;border-radius:50%;background:' + DOT[k] + ';display:inline-block"></i>' + SNAME[k] + '</span></td><td><div style="display:flex;align-items:center;gap:8px">' + segs(o) + '<span class="mono" style="font-size:12px;width:62px;text-align:right"><b>' + pctOf(o) + '%</b> <span style="color:#536079">' + doneN(o) + '/' + o.steps.length + '</span></span></div></td><td class="mono" style="font-size:12px;color:' + (l ? '#C0291B' : '#101828') + ';font-weight:' + (l ? 600 : 400) + ';white-space:nowrap">' + dueTxt(o) + '</td><td><a href="#seguimiento" data-a="open" data-id="' + o.id + '" aria-label="Abrir seguimiento de ' + o.id + '" title="Abrir seguimiento" style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:4px;color:#1546C9">' + svg('m9 18 6-6-6-6', 16, 2.2) + '</a></td></tr>';
+  }).join('') || '<tr><td colspan="8" class="empty">Ninguna pieza coincide con los filtros.</td></tr>';
+  var pager = '';
+  for (var i = 1; i <= pages; i++) pager += '<button type="button" class="mt-b sm mono" data-a="page" data-p="' + i + '" style="' + (i === pg ? 'background:#12244A;border-color:#12244A;color:#fff' : 'font-weight:500') + '">' + i + '</button>';
+  var preview = '<div class="empty">Selecciona una pieza para ver su vista previa.</div>';
+  if (sel) {
+    var rt = sel.steps.map(function (s, i) {
+      var st = s.st === 'done' ? 'Terminado' : s.st === 'proc' ? 'En proceso · ' + dur(Date.now() - s.start) : 'Pendiente';
+      var bg = s.st === 'done' ? '#12244A' : s.st === 'proc' ? '#1F5BFF' : '#E4E8EF', nm = s.st === 'pend' ? '#536079' : '#fff';
+      return '<div style="display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center;min-height:34px;font-size:13px;color:' + (s.st === 'proc' ? '#101828' : '#536079') + ';font-weight:' + (s.st === 'proc' ? 600 : 400) + '"><span class="mono" style="font-size:11px;width:20px;height:20px;border-radius:2px;display:flex;align-items:center;justify-content:center;background:' + bg + ';color:' + nm + '">' + (i + 1) + '</span><span>' + esc(s.name) + '</span><span style="font-size:12px;font-weight:500">' + st + '</span></div>';
+    }).join('');
+    preview = '<div style="padding:14px;display:flex;flex-direction:column;gap:14px"><div><div style="font-size:16px;font-weight:700">' + esc(sel.piece) + '</div><div style="font-size:13px;color:#536079">' + esc(sel.client) + '</div></div><dl style="margin:0;display:grid;grid-template-columns:92px 1fr;gap:8px 10px;font-size:13px"><dt style="color:#536079">Material</dt><dd style="margin:0">' + esc(sel.material) + '</dd><dt style="color:#536079">Medidas</dt><dd class="mono" style="margin:0;font-size:12px">' + esc(sel.medidas || '—') + '</dd><dt style="color:#536079">Ingreso</dt><dd class="mono" style="margin:0;font-size:12px">' + fd(sel.entry) + '</dd><dt style="color:#536079">Entrega est.</dt><dd class="mono" style="margin:0;font-size:12px">' + fd(sel.due) + '</dd></dl><div style="border-top:1px solid #E4E8EF;padding-top:12px"><div style="font-size:11px;font-weight:600;letter-spacing:.06em;color:#536079;margin-bottom:8px">RECORRIDO</div>' + rt + '</div><a href="#seguimiento" data-a="open" data-id="' + sel.id + '" class="mt-b pri">Abrir seguimiento</a></div>';
+  }
+  var cl = '<option value="">Todos</option>' + S.clients.map(function (c) { return opt(c, c, P.cliente); }).join('');
+  var pr = '<option value="">Todos</option>' + S.catalog.map(function (c) { return opt(c.name, c.name, P.proc); }).join('') + opt('Entrega', 'Entrega (lista)', P.proc);
+  var so = [['entry-desc', 'Ingreso · más reciente'], ['entry-asc', 'Ingreso · más antiguo'], ['due-asc', 'Entrega · más próxima'], ['due-desc', 'Entrega · más lejana'], ['avance-desc', 'Mayor avance']].map(function (s) { return opt(s[0], s[1], P.sort); }).join('');
+  return {
+    crumb: crumb1('Todas las piezas'),
+    body: '<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px"><div><h1>Todas las piezas</h1><div class="sub">Centro operativo · <span class="mono">' + O.length + '</span> piezas registradas · datos de ejemplo</div></div><a href="#pedido" class="mt-b pri">' + svg(PLUS, 14, 2.6) + 'Nuevo pedido</a></div>' +
+      '<section class="mt-pn" style="padding:12px 14px;display:flex;flex-direction:column;gap:12px"><div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center"><label style="position:relative;display:block;flex:1 1 320px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#536079" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="position:absolute;left:11px;top:50%;margin-top:-7px"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="pz-q" class="mt-in" type="search" data-m="piezas.q" value="' + esc(P.q) + '" placeholder="Buscar por n.º de pedido, nombre de pieza o cliente" aria-label="Buscar" style="padding-left:34px"></label><div style="display:flex;flex-wrap:wrap;gap:6px">' + chips + '</div></div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end"><label class="fld"><span class="lb">Cliente</span><select id="pz-cl" class="mt-in" data-m="piezas.cliente">' + cl + '</select></label><label class="fld"><span class="lb">Proceso actual</span><select id="pz-pr" class="mt-in" data-m="piezas.proc">' + pr + '</select></label><label class="fld"><span class="lb">Ordenar por</span><select id="pz-so" class="mt-in" data-m="piezas.sort">' + so + '</select></label><label class="fld"><span class="lb">Ingreso desde</span><input id="pz-fr" class="mt-in mono" type="date" data-m="piezas.from" value="' + esc(P.from) + '"></label><label class="fld"><span class="lb">Ingreso hasta</span><input id="pz-to" class="mt-in mono" type="date" data-m="piezas.to" value="' + esc(P.to) + '"></label><button type="button" class="mt-b" data-a="clearf">Limpiar filtros</button></div></section>' +
+      '<div class="row"><section class="mt-pn" style="flex:3 1 640px;overflow:hidden"><div style="overflow-x:auto"><table class="mt-tbl" style="min-width:860px;font-size:13px"><thead><tr><th>Pedido</th><th>Pieza · cliente</th><th>Ingreso</th><th>Proceso actual</th><th>Estado</th><th style="min-width:170px">Avance</th><th>Entrega est.</th><th style="width:44px"></th></tr></thead><tbody>' + tr + '</tbody></table></div><div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;padding:10px 14px;border-top:1px solid #E4E8EF;font-size:12px;color:#536079"><span class="mono">' + (F.length ? ((pg - 1) * per + 1) + '–' + Math.min(pg * per, F.length) : '0') + ' de ' + F.length + '</span><span style="display:flex;gap:4px;flex-wrap:wrap">' + pager + '</span></div></section>' +
+      '<aside class="mt-pn" style="flex:1 1 300px;max-width:100%">' + panelHead('Vista previa', sel ? '<span class="mono" style="letter-spacing:0;font-weight:600">' + sel.id + '</span>' : '') + preview + '</aside></div>'
+  };
+}
+
+/* ---------- Seguimiento ---------- */
+function curSeg() {
+  var o = byId(UI.segId);
+  if (o) return o;
+  var a = S.orders.filter(function (x) { return kindOf(x) === 'e'; }).sort(function (x, y) { return (isLate(y) ? 1 : 0) - (isLate(x) ? 1 : 0) || x.due - y.due; })[0];
+  return a || S.orders[0] || null;
+}
+function vSeguimiento() {
+  var o = curSeg();
+  if (!o) return { crumb: crumb1('Seguimiento'), body: '<div class="mt-pn empty">Aún no hay pedidos. Crea el primero desde Pedidos.</div>' };
+  var k = kindOf(o), total = o.steps.length, d = doneN(o), cur = procStep(o), locked = !!o.delivered;
+  var sorted = S.orders.slice().sort(function (a, b) { return a.id < b.id ? 1 : -1; });
+  var picker = '<label class="fld" style="min-width:230px"><span class="lb">Pieza en seguimiento</span><select id="sg-pick" class="mt-in mono" data-m="segId">' + sorted.map(function (x) { return opt(x.id, x.id + ' · ' + x.piece + (x.delivered ? ' (entregada)' : ''), o.id); }).join('') + '</select></label>';
+  var fdue = isLate(o) ? 'atrasada ' + lateDays(o) + ' d' : o.delivered ? 'entregada' : 'faltan ' + Math.round((o.due - TODAY()) / DAY) + ' d';
+  var facts = [['CLIENTE', esc(o.client), ''], ['MATERIAL', esc(o.material), ''], ['MEDIDAS', esc(o.medidas || '—'), 'mono'], ['INGRESO', fd(o.entry), 'mono'], ['ENTREGA ESTIMADA', fd(o.due) + ' · ' + fdue, 'mono']].map(function (f) {
+    return '<div style="padding:12px 16px;border-right:1px solid #E4E8EF;display:flex;flex-direction:column;gap:4px"><span style="font-size:11px;font-weight:600;color:#536079;letter-spacing:.03em">' + f[0] + '</span><span class="' + f[2] + '" style="font-size:14px;font-weight:600;' + (f[0] === 'ENTREGA ESTIMADA' && isLate(o) ? 'color:#C0291B' : '') + '">' + f[1] + '</span></div>';
+  }).join('');
+  var steps = o.steps.map(function (s, i) {
+    var isCur = s.st === 'proc';
+    var hist = S.log.filter(function (l) { return l.id === o.id && l.proc === s.name && (l.kind === 'proc' || l.kind === 'obs'); });
+    var hk = o.id + ':' + i, open = UI.openHist === hk;
+    var mbg = s.st === 'done' ? '#12244A' : s.st === 'proc' ? '#1F5BFF' : '#fff', mbd = s.st === 'pend' ? '#CBD2DE' : s.st === 'proc' ? '#1F5BFF' : '#12244A';
+    var prevDone = o.steps.slice(0, i).every(function (x) { return x.st === 'done'; });
+    var canStart = !locked && s.st === 'pend', canFinish = s.st !== 'done' && !locked;
+    var canReopen = !locked && s.st === 'done';
+    var txt = s.st === 'proc' ? 'Lleva ' + dur(Date.now() - s.start) : s.st === 'done' ? 'Duración ' + dur(s.end - s.start) : 'Sin iniciar';
+    return '<div style="display:grid;grid-template-columns:30px 1fr;gap:14px"><div style="display:flex;flex-direction:column;align-items:center"><span class="mono" style="width:30px;height:30px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;background:' + mbg + ';color:' + (s.st === 'pend' ? '#536079' : '#fff') + ';border:2px solid ' + mbd + '">' + (s.st === 'done' ? '✓' : i + 1) + '</span><span style="flex:1;width:2px;min-height:14px;margin:4px 0;background:' + (i === total - 1 ? 'transparent' : s.st === 'done' ? '#12244A' : '#CBD2DE') + '"></span></div><div style="padding-bottom:20px;min-width:0"><div style="padding:10px 12px;border-radius:4px;background:' + (isCur ? '#EEF3FF' : '#fff') + ';border:1px solid ' + (isCur ? '#1F5BFF' : '#E4E8EF') + '"><div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;justify-content:space-between"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:16px;font-weight:700">' + esc(s.name) + '</span><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:' + (isCur ? '#1546C9' : '#101828') + '"><i style="width:8px;height:8px;border-radius:50%;background:' + (s.st === 'done' ? '#12244A' : s.st === 'proc' ? '#1F5BFF' : '#7A869C') + ';display:inline-block"></i>' + (s.st === 'done' ? 'Terminado' : s.st === 'proc' ? 'En proceso' : 'Pendiente') + '</span>' + (isCur ? '<span style="font-size:10px;font-weight:700;letter-spacing:.1em;color:#1546C9">ACTUAL</span>' : '') + '</div><span class="mono" style="font-size:12px;font-weight:600;color:' + (isCur ? '#1546C9' : '#536079') + '">' + txt + '</span></div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px 16px;margin-top:8px"><div><div style="font-size:10px;font-weight:600;letter-spacing:.06em;color:#536079">INICIO</div><div class="mono" style="font-size:12px">' + (s.start ? fd(s.start) + ' · ' + ft(s.start) : '—') + '</div></div><div><div style="font-size:10px;font-weight:600;letter-spacing:.06em;color:#536079">FIN</div><div class="mono" style="font-size:12px">' + (s.end ? fd(s.end) + ' · ' + ft(s.end) : '—') + '</div></div></div>' +
+      (s.obs ? '<div style="margin-top:8px;font-size:12px;color:#3A465C"><b>Observación:</b> ' + esc(s.obs) + '</div>' : '') +
+      '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px">' +
+      (s.st === 'pend' ? '<button type="button" class="mt-b sm" data-a="start" data-i="' + i + '"' + (canStart ? '' : ' disabled') + '>Iniciar</button>' : '') +
+      (s.st !== 'done' ? '<button type="button" class="mt-b sm' + (s.st === 'proc' ? ' pri' : '') + '" data-a="finish" data-i="' + i + '"' + (s.st === 'proc' && canFinish ? '' : ' disabled') + '>Finalizar</button>' : '') +
+      (s.st === 'done' ? '<button type="button" class="mt-b sm" data-a="reopen" data-i="' + i + '"' + (canReopen ? '' : ' disabled') + '>Reabrir</button>' : '') +
+      '<button type="button" class="mt-b sm" data-a="hist" data-k="' + hk + '" style="margin-left:auto">' + (open ? 'Ocultar historial' : 'Historial (' + hist.length + ')') + '</button></div>' +
+      (s.st === 'pend' && !locked ? '<div style="margin-top:6px;font-size:11px;color:#536079">' + (prevDone ? 'Para finalizar, primero debe iniciarse.' : 'Se podrá iniciar cuando terminen los procesos anteriores.') + '</div>' : '') +
+      (open ? '<div style="margin-top:10px;border-top:1px solid #E4E8EF;padding-top:8px">' + (hist.map(function (h) { return '<div style="display:grid;grid-template-columns:110px 1fr;gap:10px;padding:5px 0;font-size:12px"><span class="mono" style="color:#536079">' + fdt(h.t) + '</span><span>' + (h.kind === 'obs' ? '<b>Observación</b> <span style="color:#536079">' + esc(h.obs) + '</span>' : '<span style="color:#536079">' + h.from + '</span> <span style="color:#9AA6BB">→</span> <b>' + h.to + '</b> <span style="color:#536079">' + esc(h.obs) + '</span>') + '</span></div>'; }).join('') || '<div style="font-size:12px;color:#536079">Sin movimientos todavía.</div>') + '</div>' : '') +
+      '</div></div></div>';
+  }).join('');
+  var curS = cur >= 0 ? o.steps[cur] : null;
+  var plog = S.log.filter(function (l) { return l.id === o.id; });
+  var plogH = plog.slice(0, 6).map(function (l) {
+    return '<div style="display:grid;grid-template-columns:92px 1fr;gap:10px;padding:9px 14px;border-top:1px solid #E4E8EF;font-size:13px"><span class="mono" style="font-size:11px;color:#536079;line-height:1.5">' + fd(l.t) + '<br>' + ft(l.t) + '</span><span>' + (l.kind === 'proc' || l.kind === 'obs' ? '<b>' + esc(l.proc) + '</b><br>' + (l.kind === 'obs' ? '<span style="color:#536079">Observación · ' + esc(l.obs) + '</span>' : '<span style="color:#536079">' + l.from + '</span> <span style="color:#9AA6BB">→</span> <b>' + l.to + '</b> <span style="color:#536079">' + esc(l.obs) + '</span>') : esc(logText(l))) + '</span></div>';
+  }).join('');
+  var banner = o.delivered ? '<div class="msg" style="background:#EEF1F6;border:1px solid #D3D9E3;color:#3A465C">Pieza entregada el ' + fdt(o.delivered.at) + '. El seguimiento queda cerrado.</div>' : k === 'l' ? '<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-radius:4px;background:#EAF6F2;border:1px solid #BFE3D9;color:#0B6B58;font-size:13px;font-weight:600">Todos los procesos terminados: la pieza está lista para entregar.<a href="#entregas" data-a="ent-go" data-id="' + o.id + '" class="mt-b sm pri">Ir a Entregas</a></div>' : '';
+  return {
+    crumb: '<a href="#piezas" style="color:#536079;text-decoration:none">Todas las piezas</a> <span style="color:#9AA6BB">/</span> <span class="mono" style="color:#101828;font-weight:600">' + o.id + '</span>',
+    body: '<div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px"><div><div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><span class="mono" style="font-size:13px;font-weight:600;color:#536079">' + o.id + '</span><span style="display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:500"><i style="width:8px;height:8px;border-radius:50%;background:' + DOT[k] + ';display:inline-block"></i>' + SNAME[k] + '</span></div><h1>' + esc(o.piece) + '</h1></div><div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">' + picker + '<a href="#bitacora" data-a="bit-go" data-id="' + o.id + '" class="mt-b">Ver bitácora completa</a></div></div>' +
+      '<section class="mt-pn" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">' + facts + '<div style="padding:12px 16px;display:flex;flex-direction:column;gap:6px"><span style="font-size:11px;font-weight:600;color:#536079;letter-spacing:.03em">AVANCE</span><span class="mono" style="font-size:14px;font-weight:600">' + pctOf(o) + '% · ' + d + '/' + total + '</span>' + segs(o).replace('mt-seg', 'mt-seg" style="flex:none') + '</div></section>' + banner +
+      '<div class="row"><section class="mt-pn" style="flex:3 1 520px">' + panelHead('Recorrido de procesos', '<span style="display:flex;gap:14px;font-size:11px;letter-spacing:0;text-transform:none;font-weight:500;color:#536079;flex-wrap:wrap"><span style="display:flex;align-items:center;gap:5px"><i style="width:8px;height:8px;border-radius:50%;background:#12244A;display:inline-block"></i>Terminado</span><span style="display:flex;align-items:center;gap:5px"><i style="width:8px;height:8px;border-radius:50%;background:#1F5BFF;display:inline-block"></i>Activo</span><span style="display:flex;align-items:center;gap:5px"><i style="width:8px;height:8px;border-radius:50%;background:#7A869C;display:inline-block"></i>Pendiente</span></span>') + '<div style="padding:18px 16px 4px">' + steps + '</div></section>' +
+      '<div style="flex:2 1 340px;min-width:0;display:flex;flex-direction:column;gap:16px"><section class="mt-pn">' + panelHead('Proceso actual', '<span style="font-size:12px;letter-spacing:0;text-transform:none;font-weight:600;color:#1546C9">' + (curS ? esc(curS.name) : 'Sin proceso en curso') + '</span>') + '<div style="padding:14px;display:flex;flex-direction:column;gap:12px"><div><div style="font-size:10px;font-weight:600;letter-spacing:.06em;color:#536079">TIEMPO EN ESTE PROCESO</div><div class="mono" style="font-size:24px;font-weight:600;margin-top:2px">' + (curS ? dur(Date.now() - curS.start) : '—') + '</div><div class="mono" style="font-size:12px;color:#536079">' + (curS ? 'desde ' + fdt(curS.start) : 'Inicie un proceso para registrar tiempo') + '</div></div><label class="fld"><span class="lb">Observación</span><textarea id="sg-obs" class="mt-in" rows="3" placeholder="Novedades del proceso en curso" data-m="obsText">' + esc(UI.obsText) + '</textarea></label><div style="display:flex;justify-content:flex-end"><button type="button" class="mt-b" data-a="saveobs"' + (curS ? '' : ' disabled') + '>Guardar observación</button></div></div></section>' +
+      '<section class="mt-pn">' + panelHead('Bitácora de la pieza', monoR(plog.length)) + (plogH || '<div class="empty">Sin eventos.</div>') + '</section></div></div>'
+  };
+}
+function segAct(fn) { var o = curSeg(); if (!o) return; if (o.delivered) return say('La pieza ya fue entregada: no admite más cambios.', 'err'); fn(o); }
+function doStart(i) {
+  segAct(function (o) {
+    var s = o.steps[i];
+    if (s.st !== 'pend') return say('Solo se puede iniciar un proceso pendiente.', 'err');
+    var prev = o.steps.findIndex(function (x, j) { return j < i && x.st !== 'done'; });
+    if (prev >= 0) return say('Primero debe terminarse «' + o.steps[prev].name + '».', 'err');
+    s.st = 'proc'; s.start = Date.now(); s.end = null;
+    addLog(o.id, s.name, 'Pendiente', 'En proceso', 'proc'); say(s.name + ' iniciado.'); commit();
+  });
+}
+function doFinish(i) {
+  segAct(function (o) {
+    var s = o.steps[i];
+    if (s.st !== 'proc') return say('No se puede finalizar un proceso que todavía no se ha iniciado.', 'err');
+    s.st = 'done'; s.end = Date.now();
+    addLog(o.id, s.name, 'En proceso', 'Terminado', 'proc');
+    say(doneN(o) === o.steps.length ? s.name + ' finalizado. Todos los procesos terminados: la pieza está lista para entregar.' : s.name + ' finalizado.'); commit();
+  });
+}
+function doReopen(i) {
+  segAct(function (o) {
+    var s = o.steps[i];
+    if (s.st !== 'done') return;
+    var later = o.steps.some(function (x, j) { return j > i && x.st !== 'pend'; });
+    if (later) return say('No se puede reabrir «' + s.name + '» porque un proceso posterior ya se inició.', 'err');
+    s.st = 'proc'; s.end = null;
+    addLog(o.id, s.name, 'Terminado', 'En proceso', 'proc', 'Reabierto'); say(s.name + ' reabierto.'); commit();
+  });
+}
+function doObs() {
+  segAct(function (o) {
+    var i = procStep(o), t = UI.obsText.trim();
+    if (i < 0) return say('No hay un proceso en curso para registrar la observación.', 'err');
+    if (!t) return say('Escribe una observación antes de guardar.', 'err');
+    o.steps[i].obs = t; addLog(o.id, o.steps[i].name, 'En proceso', 'En proceso', 'obs', t);
+    UI.obsText = ''; say('Observación guardada.'); commit();
+  });
+}
+
+/* ---------- Nuevo pedido ---------- */
+function draftErrors(d) {
+  var e = {}, en = parseD(d.entry), du = parseD(d.due);
+  if (!d.client.trim()) e.client = 'req'; else if (S.clients.indexOf(d.client.trim()) < 0) e.client = 'No existe. Pulsa + para registrarlo como cliente nuevo.';
+  if (!en) e.entry = 'req';
+  if (!du) e.due = 'req'; else if (en && du < en) e.due = 'No puede ser anterior a la fecha de ingreso (' + fd(en) + ').';
+  if (!d.piece.trim()) e.piece = 'req';
+  if (!d.material.trim()) e.material = 'req';
+  if (!d.route.length) e.route = 'req';
+  return e;
+}
+var errMsg = function (e) { return e && e !== 'req' ? '<span role="alert" style="font-size:11px;font-weight:600;color:#B42318">' + esc(e) + '</span>' : ''; };
+function vPedido() {
+  var d = UI.draft, E = draftErrors(d), nE = Object.keys(E).length;
+  var used = d.route;
+  var cat = S.catalog.filter(function (c) { return c.active || used.indexOf(c.name) >= 0; }).map(function (c) {
+    var on = used.indexOf(c.name) >= 0;
+    return '<button type="button" class="mt-cat" data-a="radd" data-n="' + esc(c.name) + '"' + (on ? ' disabled' : '') + '>' + svg(on ? CHECK : PLUS, 12, 2.6) + esc(c.name) + '</button>';
+  }).join('');
+  var route = d.route.map(function (n, i) {
+    return '<div class="mt-route" draggable="true" data-drag="' + i + '" style="display:grid;grid-template-columns:20px 28px 1fr auto;gap:8px;align-items:center;min-height:40px;padding:0 6px 0 10px;border-top:' + (i ? '1px solid #E4E8EF' : '0') + ';cursor:grab"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7C89A2" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 6h.01M9 12h.01M9 18h.01M15 6h.01M15 12h.01M15 18h.01"/></svg><span class="mono" style="font-size:12px;font-weight:600;color:#1546C9">' + pad(i + 1) + '</span><span style="font-size:13px;font-weight:500">' + esc(n) + '</span><span style="display:flex"><button type="button" class="mt-ib" data-a="rup" data-i="' + i + '" aria-label="Subir ' + esc(n) + '"' + (i === 0 ? ' disabled' : '') + '>' + svg('m6 15 6-6 6 6', 14, 2.2) + '</button><button type="button" class="mt-ib" data-a="rdn" data-i="' + i + '" aria-label="Bajar ' + esc(n) + '"' + (i === d.route.length - 1 ? ' disabled' : '') + '>' + svg('m6 9 6 6 6-6', 14, 2.2) + '</button><button type="button" class="mt-ib" data-a="rdel" data-i="' + i + '" aria-label="Quitar ' + esc(n) + '">' + svg('M6 6l12 12M18 6 6 18', 14, 2.2) + '</button></span></div>';
+  }).join('') || '<div class="empty" style="padding:18px">Añade procesos desde el catálogo para armar el recorrido.</div>';
+  var bar = '<div style="display:flex;gap:2px">' + (d.route.length ? d.route.map(function () { return '<i style="flex:1;height:6px;background:#CBD2DE;display:block"></i>'; }).join('') : '<i style="flex:1;height:6px;background:#E4E8EF;display:block"></i>') + '</div>';
+  var inv = function (k) { return E[k] && E[k] !== 'req' ? ' aria-invalid="true" style="border-color:#C0291B"' : ''; };
+  return {
+    crumb: 'METALTRACK <span style="color:#9AA6BB">/</span> Pedidos <span style="color:#9AA6BB">/</span> <span style="color:#101828;font-weight:600">Nuevo</span>',
+    body: '<div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px"><div><h1>Nuevo pedido</h1><div class="sub">Cada pedido corresponde a una única pieza</div></div><div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#536079">Número asignado <span class="mono" style="font-size:14px;font-weight:600;color:#101828;padding:6px 10px;border:1px solid #C3CBD9;border-radius:4px;background:#fff">MT-' + pad4(S.nextNum) + '</span></div></div>' +
+      '<div class="row"><div style="flex:3 1 520px;min-width:0;display:flex;flex-direction:column;gap:16px"><section class="mt-pn">' + panelHead('1 · Cliente y fechas') + '<div style="padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px 14px">' +
+      '<div class="fld"><label class="lb" for="pd-client">Cliente <span class="rq">*</span></label><div style="display:flex;gap:6px"><input id="pd-client" class="mt-in" type="text" list="dl-clients" autocomplete="off" data-m="draft.client" value="' + esc(d.client) + '" placeholder="Buscar cliente existente" style="flex:1' + (E.client && E.client !== 'req' ? ';border-color:#C0291B' : '') + '"><datalist id="dl-clients">' + S.clients.map(function (c) { return '<option value="' + esc(c) + '"></option>'; }).join('') + '</datalist><button type="button" class="mt-b" data-a="addclient" style="padding:0 10px" aria-label="Registrar cliente nuevo" title="Registrar cliente nuevo">' + svg(PLUS, 14, 2.6) + '</button></div>' + (E.client && E.client !== 'req' ? errMsg(E.client) : '<span style="font-size:11px;color:#536079">Si no existe, regístralo con +</span>') + '</div>' +
+      '<div class="fld"><label class="lb" for="pd-entry">Fecha de ingreso <span class="rq">*</span></label><input id="pd-entry" class="mt-in mono" type="date" data-m="draft.entry" value="' + esc(d.entry) + '"></div>' +
+      '<div class="fld"><label class="lb" for="pd-due">Entrega estimada <span class="rq">*</span></label><input id="pd-due" class="mt-in mono" type="date" data-m="draft.due" value="' + esc(d.due) + '"' + inv('due') + '>' + errMsg(E.due) + '</div></div></section>' +
+      '<section class="mt-pn">' + panelHead('2 · Pieza') + '<div style="padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px 14px"><div class="fld" style="grid-column:1/-1"><label class="lb" for="pd-piece">Nombre de la pieza <span class="rq">*</span></label><input id="pd-piece" class="mt-in" type="text" data-m="draft.piece" value="' + esc(d.piece) + '" placeholder="Nombre de la pieza"></div><div class="fld"><label class="lb" for="pd-mat">Material <span class="rq">*</span></label><input id="pd-mat" class="mt-in" type="text" data-m="draft.material" value="' + esc(d.material) + '" placeholder="Material"></div><div class="fld"><label class="lb" for="pd-med">Medidas</label><input id="pd-med" class="mt-in mono" type="text" data-m="draft.medidas" value="' + esc(d.medidas) + '" placeholder="Largo × ancho × alto"></div><div class="fld" style="grid-column:1/-1"><label class="lb" for="pd-desc">Descripción</label><textarea id="pd-desc" class="mt-in" rows="2" data-m="draft.desc" placeholder="Descripción técnica de la pieza">' + esc(d.desc) + '</textarea></div><div class="fld" style="grid-column:1/-1"><label class="lb" for="pd-obs">Observaciones</label><textarea id="pd-obs" class="mt-in" rows="2" data-m="draft.obs" placeholder="Notas adicionales">' + esc(d.obs) + '</textarea></div></div></section></div>' +
+      '<section class="mt-pn" style="flex:2 1 360px">' + panelHead('3 · Recorrido de procesos', monoR(d.route.length + ' pasos')) + '<div style="padding:14px;display:flex;flex-direction:column;gap:14px"><div><div class="lb" style="margin-bottom:6px">CATÁLOGO · clic para añadir al recorrido</div><div style="display:flex;flex-wrap:wrap;gap:6px">' + (cat || '<span class="sub">El catálogo está vacío.</span>') + '</div></div><div><div class="lb" style="margin-bottom:6px">ORDEN DEL RECORRIDO · arrastra o usa las flechas</div><div style="border:1px solid #D3D9E3;border-radius:4px">' + route + '</div></div>' + bar + '</div></section></div>' +
+      '<div style="position:sticky;bottom:0;margin:20px -28px -28px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:12px 28px;background:#fff;border-top:1px solid #D3D9E3"><span style="font-size:12px;color:#536079"><span class="rq">*</span> Campos obligatorios · ' + (nE ? '<span style="color:#B42318;font-weight:600">' + nE + ' por completar o corregir antes de guardar</span>' : '<span style="color:#0B6B58;font-weight:600">Listo para guardar</span>') + '</span><div style="display:flex;flex-wrap:wrap;gap:8px"><a href="#piezas" class="mt-b" data-a="draftreset">Cancelar</a><button type="button" class="mt-b" data-a="save2"' + (nE ? ' disabled' : '') + '>Guardar y crear otro</button><button type="button" class="mt-b pri" data-a="save"' + (nE ? ' disabled' : '') + '>Guardar pedido</button></div></div>'
+  };
+}
+function moveRoute(a, b) { var r = UI.draft.route; if (a === b || a < 0 || b < 0 || a >= r.length || b >= r.length) return; var x = r.splice(a, 1)[0]; r.splice(b, 0, x); render(); }
+function savePedido(another) {
+  var d = UI.draft, E = draftErrors(d);
+  if (Object.keys(E).length) return say('Hay campos por completar o corregir.', 'err');
+  var id = 'MT-' + pad4(S.nextNum);
+  S.orders.push({ id: id, piece: d.piece.trim(), client: d.client.trim(), material: d.material.trim(), medidas: d.medidas.trim(), desc: d.desc.trim(), obs: d.obs.trim(), entry: parseD(d.entry), due: parseD(d.due), steps: d.route.map(function (n) { return { name: n, st: 'pend', start: null, end: null, obs: '' }; }), delivered: null });
+  S.nextNum++;
+  S.log.unshift({ t: Date.now(), id: id, proc: '', from: '', to: '', kind: 'pedido', obs: '' });
+  UI.draft = blankDraft();
+  UI.piezas.sel = id; UI.piezas.chip = 'todas'; UI.piezas.q = ''; UI.piezas.page = 1;
+  say('Pedido ' + id + ' creado con ' + S.orders[S.orders.length - 1].steps.length + ' procesos.');
+  save();
+  if (another) render(); else { if (location.hash !== '#piezas') location.hash = '#piezas'; else render(); }
+}
+
+/* ---------- Entregas ---------- */
+function vEntregas() {
+  var E = UI.ent, O = S.orders;
+  var ready = O.filter(function (o) { return kindOf(o) === 'l'; }).sort(function (a, b) { return a.due - b.due; });
+  var dels = O.filter(function (o) { return o.delivered; }).sort(function (a, b) { return b.delivered.at - a.delivered.at; });
+  var list = E.chip === 'por' ? ready : E.chip === 'x' ? dels : ready.concat(dels);
+  var sel = ready.find(function (o) { return o.id === E.sel; }) || ready[0] || null;
+  var chips = [['por', 'Por entregar', ready.length], ['x', 'Entregadas', dels.length], ['todas', 'Todas', ready.length + dels.length]].map(function (c) { return '<button type="button" class="mt-chip' + (E.chip === c[0] ? ' is-on' : '') + '" data-a="entchip" data-chip="' + c[0] + '">' + c[1] + '<span class="mono" style="font-size:12px;opacity:.75">' + c[2] + '</span></button>'; }).join('');
+  var q = list.map(function (o) {
+    var on = sel && sel.id === o.id && !o.delivered;
+    return '<tr class="mt-tr" style="background:' + (on ? '#EEF3FF' : 'transparent') + ';box-shadow:inset 3px 0 0 ' + (on ? '#1F5BFF' : 'transparent') + '"><td class="mono" style="font-weight:600">' + o.id + '</td><td><div style="font-weight:600;line-height:1.2">' + esc(o.piece) + '</div><div style="font-size:12px;color:#536079">' + esc(o.client) + '</div></td><td><div style="display:flex;align-items:center;gap:8px">' + segs(o) + '<span class="mono" style="font-size:12px;width:28px;color:#536079">' + doneN(o) + '/' + o.steps.length + '</span></div><div style="font-size:11px;color:#0B6B58;margin-top:2px">Todos los procesos terminados</div></td><td class="mono" style="font-size:12px">' + fd(o.due) + '</td><td style="text-align:right">' + (o.delivered ? '<span style="font-size:12px;color:#536079">Entregada ' + fd(o.delivered.at) + '</span>' : '<button type="button" class="mt-b sm pri" data-a="entsel" data-id="' + o.id + '">Registrar entrega</button>') + '</td></tr>';
+  }).join('') || '<tr><td colspan="5" class="empty">No hay piezas en esta lista.</td></tr>';
+  var hist = dels.slice(0, 10).map(function (o) {
+    return '<tr class="mt-tr"><td class="mono" style="font-size:12px">' + fdt(o.delivered.at) + '</td><td class="mono" style="font-weight:600">' + o.id + '</td><td><span style="font-weight:600">' + esc(o.piece) + '</span> <span style="color:#536079">· ' + esc(o.client) + '</span></td><td><span style="display:inline-flex;align-items:center;gap:7px"><i style="width:8px;height:8px;border-radius:50%;background:#536079;display:inline-block"></i>Entregada</span></td><td style="color:#536079">' + esc(o.delivered.obs || '—') + '</td></tr>';
+  }).join('') || '<tr><td colspan="5" class="empty">Aún no hay entregas registradas.</td></tr>';
+  var panel;
+  if (!sel) panel = '<div class="empty">No hay piezas listas para entregar. Cuando una pieza termine todos sus procesos aparecerá aquí.</div>';
+  else panel = '<div style="padding:14px;display:flex;flex-direction:column;gap:12px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><label class="fld"><span class="lb">Número de pedido</span><input class="mt-in mono" type="text" value="' + sel.id + '" readonly></label><label class="fld"><span class="lb">Fecha y hora</span><input id="en-dt" class="mt-in mono" type="datetime-local" data-m="ent.dt" value="' + esc(E.dt || isoDT(Date.now())) + '"></label></div><label class="fld"><span class="lb">Cliente</span><input class="mt-in" type="text" value="' + esc(sel.client) + '" readonly></label><label class="fld"><span class="lb">Pieza</span><input class="mt-in" type="text" value="' + esc(sel.piece) + '" readonly></label><label class="fld"><span class="lb">Estado de entrega</span><input class="mt-in" type="text" value="Entregada" readonly></label><label class="fld"><span class="lb">Observaciones</span><textarea id="en-obs" class="mt-in" rows="3" placeholder="Notas de la entrega" data-m="ent.obs">' + esc(E.obs) + '</textarea></label><div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #BFE3D9;background:#EAF6F2;border-radius:4px;font-size:12px;color:#0B6B58">' + svg(CHECK, 14, 2.4) + sel.steps.length + ' de ' + sel.steps.length + ' procesos terminados</div><button type="button" class="mt-b pri" data-a="entok">Confirmar entrega</button><div style="font-size:11px;color:#536079">Una pieza entregada se cierra y no puede registrarse otra vez. El historial se conserva.</div></div>';
+  return {
+    crumb: crumb1('Entregas'),
+    body: '<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px"><div><h1>Entregas</h1><div class="sub">Solo se entregan piezas con todos sus procesos terminados · datos de ejemplo</div></div><div style="display:flex;flex-wrap:wrap;gap:6px">' + chips + '</div></div>' +
+      '<div class="row"><div style="flex:3 1 640px;min-width:0;display:flex;flex-direction:column;gap:14px"><section class="mt-pn" style="overflow:hidden">' + panelHead(E.chip === 'x' ? 'Piezas entregadas' : 'Piezas por entregar', monoR(list.length)) + '<div style="overflow-x:auto"><table class="mt-tbl" style="min-width:700px;font-size:13px"><thead><tr><th>Pedido</th><th>Pieza · cliente</th><th style="min-width:150px">Procesos</th><th>Entrega est.</th><th style="text-align:right">Acción</th></tr></thead><tbody>' + q + '</tbody></table></div></section>' +
+      '<section class="mt-pn" style="overflow:hidden">' + panelHead('Historial de entregas', monoR(dels.length)) + '<div style="overflow-x:auto"><table class="mt-tbl" style="min-width:700px;font-size:13px"><thead><tr><th>Fecha y hora</th><th>Pedido</th><th>Pieza · cliente</th><th>Estado</th><th>Observaciones</th></tr></thead><tbody>' + hist + '</tbody></table></div></section></div>' +
+      '<aside class="mt-pn" style="flex:1 1 320px;max-width:100%">' + panelHead('Registrar entrega', sel ? '<span class="mono" style="letter-spacing:0;font-weight:600">' + sel.id + '</span>' : '') + panel + '</aside></div>'
+  };
+}
+function doEntrega() {
+  var E = UI.ent, ready = S.orders.filter(function (o) { return kindOf(o) === 'l'; });
+  var sel = ready.find(function (o) { return o.id === E.sel; }) || ready[0];
+  if (!sel) return say('No hay una pieza lista para entregar.', 'err');
+  var at = parseDT(E.dt || isoDT(Date.now()));
+  if (!at) return say('Indica una fecha y hora válidas.', 'err');
+  sel.delivered = { at: at, obs: E.obs.trim() };
+  S.log.unshift({ t: Date.now(), id: sel.id, proc: '', from: '', to: '', kind: 'entrega', obs: E.obs.trim() });
+  UI.ent.sel = null; UI.ent.dt = ''; UI.ent.obs = '';
+  say('Entrega de ' + sel.id + ' registrada. La pieza queda cerrada.'); commit();
+}
+
+/* ---------- Bitácora ---------- */
+function vBitacora() {
+  var B = UI.bit, q = B.q.trim().toLowerCase();
+  var L = S.log.filter(function (l) {
+    if (B.type && l.kind !== B.type) return false;
+    if (q) { var o = byId(l.id); if ((l.id + ' ' + (o ? o.piece + ' ' + o.client : '') + ' ' + logText(l)).toLowerCase().indexOf(q) < 0) return false; }
+    return true;
+  });
+  var per = 15, pages = Math.max(1, Math.ceil(L.length / per)), pg = Math.min(B.page, pages);
+  var TY = { pedido: 'Pedido', proc: 'Proceso', obs: 'Observación', entrega: 'Entrega' };
+  var rows = L.slice((pg - 1) * per, pg * per).map(function (l) {
+    var o = byId(l.id);
+    return '<tr class="mt-tr"><td class="mono" style="font-size:12px;white-space:nowrap">' + fdt(l.t) + '</td><td class="mono" style="font-weight:600"><a href="#seguimiento" data-a="open" data-id="' + l.id + '" style="color:#101828;text-decoration:none">' + l.id + '</a></td><td>' + (o ? esc(o.piece) + ' <span style="color:#536079">· ' + esc(o.client) + '</span>' : '—') + '</td><td><span class="tag">' + TY[l.kind] + '</span></td><td>' + esc(logText(l)) + '</td></tr>';
+  }).join('') || '<tr><td colspan="5" class="empty">No hay eventos que coincidan.</td></tr>';
+  var pager = '';
+  for (var i = 1; i <= pages; i++) pager += '<button type="button" class="mt-b sm mono" data-a="bpage" data-p="' + i + '" style="' + (i === pg ? 'background:#12244A;border-color:#12244A;color:#fff' : 'font-weight:500') + '">' + i + '</button>';
+  var types = '<option value="">Todos los eventos</option>' + Object.keys(TY).map(function (k) { return opt(k, TY[k], B.type); }).join('');
+  return {
+    crumb: crumb1('Bitácora'),
+    body: '<div><h1>Bitácora</h1><div class="sub">Historial de cambios de estado, observaciones y entregas · <span class="mono">' + S.log.length + '</span> eventos</div></div>' +
+      '<section class="mt-pn" style="padding:12px 14px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end"><label class="fld" style="flex:1 1 280px"><span class="lb">Buscar</span><input id="bt-q" class="mt-in" type="search" data-m="bit.q" value="' + esc(B.q) + '" placeholder="Pedido, pieza, cliente o texto"></label><label class="fld" style="flex:0 1 200px"><span class="lb">Tipo de evento</span><select id="bt-ty" class="mt-in" data-m="bit.type">' + types + '</select></label><button type="button" class="mt-b" data-a="bitclear">Limpiar filtros</button></section>' +
+      '<section class="mt-pn" style="overflow:hidden"><div style="overflow-x:auto"><table class="mt-tbl" style="min-width:760px;font-size:13px"><thead><tr><th>Fecha y hora</th><th>Pedido</th><th>Pieza · cliente</th><th>Tipo</th><th>Detalle</th></tr></thead><tbody>' + rows + '</tbody></table></div><div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;padding:10px 14px;border-top:1px solid #E4E8EF;font-size:12px;color:#536079"><span class="mono">' + (L.length ? ((pg - 1) * per + 1) + '–' + Math.min(pg * per, L.length) : '0') + ' de ' + L.length + '</span><span style="display:flex;gap:4px;flex-wrap:wrap">' + pager + '</span></div></section>'
+  };
+}
+
+/* ---------- Catálogo ---------- */
+function vCatalogo() {
+  var use = function (n) { return S.orders.filter(function (o) { return o.steps.some(function (s) { return s.name === n; }); }).length; };
+  var rows = S.catalog.map(function (c, i) {
+    return '<tr class="mt-tr"><td style="font-weight:600">' + esc(c.name) + '</td><td><span style="display:inline-flex;align-items:center;gap:7px"><i style="width:8px;height:8px;border-radius:50%;background:' + (c.active ? '#0B7A66' : '#7A869C') + ';display:inline-block"></i>' + (c.active ? 'Disponible' : 'Desactivado') + '</span></td><td class="mono">' + use(c.name) + '</td><td style="text-align:right"><button type="button" class="mt-b sm" data-a="cattog" data-i="' + i + '">' + (c.active ? 'Desactivar' : 'Activar') + '</button></td></tr>';
+  }).join('') || '<tr><td colspan="4" class="empty">Aún no hay procesos en el catálogo.</td></tr>';
+  return {
+    crumb: crumb1('Catálogo de procesos'),
+    body: '<div><h1>Catálogo de procesos</h1><div class="sub">Procesos que se pueden elegir al armar el recorrido de un pedido nuevo. Desactivar un proceso no afecta a los pedidos existentes.</div></div>' +
+      '<div class="row"><section class="mt-pn" style="flex:3 1 520px;overflow:hidden">' + panelHead('Procesos', monoR(S.catalog.length)) + '<div style="overflow-x:auto"><table class="mt-tbl" style="min-width:480px;font-size:13px"><thead><tr><th>Proceso</th><th>Estado</th><th>Pedidos que lo usan</th><th style="text-align:right">Acción</th></tr></thead><tbody>' + rows + '</tbody></table></div></section>' +
+      '<aside class="mt-pn" style="flex:1 1 300px">' + panelHead('Añadir proceso') + '<form data-f="catadd" style="padding:14px;display:flex;flex-direction:column;gap:12px"><label class="fld"><span class="lb">Nombre del proceso <span class="rq">*</span></span><input id="ct-name" class="mt-in" type="text" data-m="cat.name" value="' + esc(UI.cat.name) + '" placeholder="Ej.: Taladrado" autocomplete="off"></label><button type="submit" class="mt-b pri">' + svg(PLUS, 14, 2.6) + 'Añadir al catálogo</button></form></aside></div>'
+  };
+}
+
+/* ---------- Render y eventos ---------- */
+var app = document.getElementById('app');
+var VIEW = { dashboard: vDashboard, piezas: vPiezas, seguimiento: vSeguimiento, pedido: vPedido, entregas: vEntregas, bitacora: vBitacora, catalogo: vCatalogo };
+function render() {
+  var ae = document.activeElement, fid = ae && ae.id, ss = null, se = null;
+  try { if (ae && typeof ae.selectionStart === 'number') { ss = ae.selectionStart; se = ae.selectionEnd; } } catch (e) {}
+  var sy = window.scrollY;
+  var v = VIEW[UI.route]();
+  app.innerHTML = shell(v.crumb, v.body, v.top);
+  window.scrollTo(0, sy);
+  if (fid) { var el = document.getElementById(fid); if (el) { el.focus({ preventScroll: true }); if (ss !== null) { try { el.setSelectionRange(ss, se); } catch (e) {} } } }
+}
+function routeFromHash() {
+  var h = (location.hash || '').replace('#', '');
+  return VIEWS.indexOf(h) >= 0 ? h : 'dashboard';
+}
+function go(r) { if (location.hash !== '#' + r) location.hash = '#' + r; else render(); }
+window.addEventListener('hashchange', function () { UI.route = routeFromHash(); UI.resetArm = false; window.scrollTo(0, 0); render(); });
+function setPath(path, val) {
+  var p = path.split('.'), o = UI;
+  for (var i = 0; i < p.length - 1; i++) o = o[p[i]];
+  o[p[p.length - 1]] = val;
+  if ((p[0] === 'piezas' || p[0] === 'bit') && p[1] !== 'page') UI[p[0]].page = 1;
+  if (path === 'segId') UI.obsText = '';
+}
+var isDateLike = function (t) { return t.tagName === 'SELECT' || t.type === 'date' || t.type === 'datetime-local'; };
+app.addEventListener('input', function (e) {
+  var t = e.target; if (!t.dataset || !t.dataset.m || isDateLike(t)) return;
+  setPath(t.dataset.m, t.value); render();
+});
+app.addEventListener('change', function (e) {
+  var t = e.target; if (!t.dataset || !t.dataset.m || !isDateLike(t)) return;
+  setPath(t.dataset.m, t.value); render();
+});
+app.addEventListener('keydown', function (e) {
+  var t = e.target;
+  if (e.key === 'Enter' && t.dataset && t.dataset.enter) { e.preventDefault(); go(t.dataset.enter); }
+});
+app.addEventListener('submit', function (e) {
+  var f = e.target.closest('[data-f]'); if (!f) return;
+  e.preventDefault();
+  if (f.dataset.f === 'catadd') {
+    var n = UI.cat.name.trim();
+    if (!n) return say('Escribe el nombre del proceso.', 'err');
+    if (S.catalog.some(function (c) { return c.name.toLowerCase() === n.toLowerCase(); })) return say('«' + n + '» ya existe en el catálogo.', 'err');
+    S.catalog.push({ name: n, active: true }); UI.cat.name = ''; say('Proceso «' + n + '» añadido al catálogo.'); commit();
+  }
+});
+var ACT = {
+  open: function (el) { UI.segId = el.dataset.id; UI.obsText = ''; UI.openHist = ''; UI.msg = null; render(); },
+  sel: function (el) { UI.piezas.sel = el.dataset.id; render(); },
+  chip: function (el) { UI.piezas.chip = el.dataset.chip; UI.piezas.page = 1; render(); },
+  page: function (el) { UI.piezas.page = +el.dataset.p; render(); },
+  clearf: function () { UI.piezas = { q: '', chip: 'todas', cliente: '', proc: '', sort: 'entry-desc', from: '', to: '', page: 1, sel: UI.piezas.sel }; render(); },
+  start: function (el) { doStart(+el.dataset.i); },
+  finish: function (el) { doFinish(+el.dataset.i); },
+  reopen: function (el) { doReopen(+el.dataset.i); },
+  hist: function (el) { UI.openHist = UI.openHist === el.dataset.k ? '' : el.dataset.k; render(); },
+  saveobs: function () { doObs(); },
+  'bit-go': function (el) { UI.bit = { q: el.dataset.id, type: '', page: 1 }; render(); },
+  'ent-go': function (el) { UI.ent.sel = el.dataset.id; UI.ent.chip = 'por'; render(); },
+  radd: function (el) { var n = el.dataset.n; if (UI.draft.route.indexOf(n) < 0) UI.draft.route.push(n); render(); },
+  rup: function (el) { moveRoute(+el.dataset.i, +el.dataset.i - 1); },
+  rdn: function (el) { moveRoute(+el.dataset.i, +el.dataset.i + 1); },
+  rdel: function (el) { UI.draft.route.splice(+el.dataset.i, 1); render(); },
+  addclient: function () {
+    var n = UI.draft.client.trim();
+    if (!n) return say('Escribe el nombre del cliente nuevo en el campo y pulsa + para registrarlo.', 'err');
+    if (S.clients.indexOf(n) >= 0) return say('«' + n + '» ya está registrado.', 'err');
+    S.clients.push(n); S.clients.sort(); UI.draft.client = n; say('Cliente «' + n + '» registrado.'); commit();
+  },
+  save: function () { savePedido(false); },
+  save2: function () { savePedido(true); },
+  draftreset: function () { UI.draft = blankDraft(); },
+  entchip: function (el) { UI.ent.chip = el.dataset.chip; render(); },
+  entsel: function (el) { UI.ent.sel = el.dataset.id; UI.ent.dt = ''; render(); },
+  entok: function () { doEntrega(); },
+  bpage: function (el) { UI.bit.page = +el.dataset.p; render(); },
+  bitclear: function () { UI.bit = { q: '', type: '', page: 1 }; render(); },
+  cattog: function (el) { var c = S.catalog[+el.dataset.i]; c.active = !c.active; say('«' + c.name + '» ' + (c.active ? 'activado' : 'desactivado') + '.'); commit(); },
+  reset: function () {
+    if (!UI.resetArm) { UI.resetArm = true; render(); setTimeout(function () { if (UI.resetArm) { UI.resetArm = false; render(); } }, 4000); return; }
+    S = seed(); UI.resetArm = false; UI.segId = null; UI.piezas.sel = null; UI.draft = blankDraft(); say('Datos de ejemplo restablecidos.'); commit();
+  }
+};
+app.addEventListener('click', function (e) {
+  var el = e.target.closest('[data-a]');
+  if (!el || el.disabled) return;
+  var fn = ACT[el.dataset.a];
+  if (fn) fn(el, e);
+});
+var dragI = null;
+app.addEventListener('dragstart', function (e) {
+  var r = e.target.closest && e.target.closest('[data-drag]'); if (!r) return;
+  dragI = +r.dataset.drag; e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', String(dragI)); } catch (x) {}
+});
+app.addEventListener('dragover', function (e) { if (dragI !== null && e.target.closest && e.target.closest('[data-drag]')) e.preventDefault(); });
+app.addEventListener('drop', function (e) {
+  var r = e.target.closest && e.target.closest('[data-drag]'); if (!r || dragI === null) return;
+  e.preventDefault(); var from = dragI; dragI = null; moveRoute(from, +r.dataset.drag);
+});
+app.addEventListener('dragend', function () { dragI = null; });
+
+UI.route = routeFromHash();
+render();
+})();
+</script>

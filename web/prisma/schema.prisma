@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Usuarios que inician sesión (v1: un solo rol).
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  name         String
+  passwordHash String
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  logEntries LogEntry[]
+}
+
+model Client {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  orders Order[]
+}
+
+// Catálogo de procesos. "Entrega" NO es un proceso (decisión P3).
+// Un proceso usado se desactiva, no se elimina (RN-17).
+model ProcessType {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  active Boolean @default(true)
+
+  steps RouteStep[]
+}
+
+// Un pedido = una pieza (RN-01). El número visible es MT-0001, MT-0002...
+model Order {
+  id            Int       @id @default(autoincrement())
+  clientId      Int
+  entryDate     DateTime
+  dueDate       DateTime
+  createdAt     DateTime  @default(now())
+  // Archivar en lugar de borrar (decisión P7).
+  archivedAt    DateTime?
+  archivedBy    String?
+  archiveReason String?
+
+  client Client @relation(fields: [clientId], references: [id])
+  piece  Piece?
+  log    LogEntry[]
+}
+
+model Piece {
+  id          Int     @id @default(autoincrement())
+  orderId     Int     @unique
+  name        String
+  material    String
+  measures    String?
+  description String?
+  notes       String?
+
+  order    Order       @relation(fields: [orderId], references: [id])
+  steps    RouteStep[]
+  delivery Delivery?
+}
+
+// Recorrido: un paso por proceso, con su orden.
+// status: PENDING | IN_PROGRESS | DONE
+model RouteStep {
+  id            Int       @id @default(autoincrement())
+  pieceId       Int
+  processTypeId Int
+  position      Int
+  status        String    @default("PENDING")
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  note          String?
+
+  piece       Piece       @relation(fields: [pieceId], references: [id])
+  processType ProcessType @relation(fields: [processTypeId], references: [id])
+
+  @@unique([pieceId, position])
+}
+
+// Entrega: acto posterior a terminar todos los procesos. Una sola por pieza (RN-15).
+model Delivery {
+  id             Int      @id @default(autoincrement())
+  pieceId        Int      @unique
+  deliveredAt    DateTime
+  note           String?
+  registeredBy   String
+  createdAt      DateTime @default(now())
+
+  piece Piece @relation(fields: [pieceId], references: [id])
+}
+
+// Bitácora: solo se inserta. Un trigger de SQLite bloquea UPDATE y DELETE (RN-16).
+// kind: ORDER_CREATED | STEP_STARTED | STEP_FINISHED | NOTE | DELIVERED | ORDER_ARCHIVED
+model LogEntry {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  kind      String
+  orderId   Int
+  stepName  String?
+  detail    String?
+  userId    Int?
+
+  order Order @relation(fields: [orderId], references: [id])
+  user  User? @relation(fields: [userId], references: [id])
+
+  @@index([orderId])
+  @@index([createdAt])
+}

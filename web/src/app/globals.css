@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+/* Sistema visual de METALTRACK: marino y gris frío, azul eléctrico solo para acción y proceso actual. */
+@theme {
+  --color-navy: #0b1426;
+  --color-steel: #12244a;
+  --color-electric: #1f5bff;
+  --color-electric-dark: #1546c9;
+  --color-ink: #101828;
+  --color-muted: #536079;
+  --color-line: #d3d9e3;
+  --color-surface: #e9ecf1;
+  --color-late: #c0291b;
+  --color-ok: #0b7a66;
+  --radius-sm: 3px;
+  --radius-md: 4px;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, Consolas, monospace;
+}
+
+body {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: 14px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-electric);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
